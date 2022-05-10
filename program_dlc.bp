@@ -123,7 +123,9 @@ Sub Ultrasonic_fast
 EndSub
 
 Sub take_chem_on_left
-  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 280, "True")
+  deg = 280
+  move_forward()
+  'Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 280, "True")
   delay()
   Motor.ResetCount(left_motor)
   For i = 1 To 20
@@ -131,28 +133,35 @@ Sub take_chem_on_left
     Program.Delay(10)
   EndFor
   Motor.Move(left_motor, -20 * left_forward, 360 + (Motor.GetCount(left_motor) * left_forward), "True")
+  
   Motor.Move(grabber_motor, 100, 165, "True")
-  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 70, "True")
+  deg = 70
+  move_forward()
+  'Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 70, "True")
   Motor.Move(grabber_motor, 100, 100, "True")
   
   delay()
-  Motor.ResetCount(not_inversed_motor)
-  For i = 1 To 20
-    Motor.StartSync(motors, left_forward * -1 * i, right_forward * -1 * i)
-    Program.Delay(15)
-  EndFor
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 100 + Motor.GetCount(not_inversed_motor), "True")
+  'Motor.ResetCount(not_inversed_motor)
+  'For i = 1 To 20
+    'Motor.StartSync(motors, left_forward * -1 * i, right_forward * -1 * i)
+    'Program.Delay(15)
+  'EndFor
+  'Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 100 + Motor.GetCount(not_inversed_motor), "True")
+  move_backward()
   
   Motor.ResetCount(left_motor)
   For i = 1 To 20
     Motor.Start(left_motor, left_forward * i)
     Program.Delay(10)
   EndFor
-  Motor.Move(left_motor, 20 * left_forward, 360 - (Motor.GetCount(left_motor) * left_forward), "True")
+  ' 360
+  Motor.Move(left_motor, 20 * left_forward, 350 - (Motor.GetCount(left_motor) * left_forward), "True")
   stop()
   delay()
   
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 280, "True")
+  'Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 280, "True")
+  deg = 280
+  move_backward()
   stop()
   delay()
 EndSub
@@ -462,7 +471,8 @@ Sub main
   EndWhile
   stop_right()
   
-  a = 99
+  ' 99
+  a = 105
   ' 300, 253
   delay()
   ' 290
@@ -515,7 +525,8 @@ Sub main
     object = "None"
     update_display()
     
-    If w > 30 Then
+    ' 30
+    If w > 25 Then
       ' Химикат
       object = "Chemical"
       update_display()
@@ -801,15 +812,18 @@ Sub main
   Else
     ' Если химиката нет, просто отъезд
     
-    Motor.ResetCount(not_inversed_motor)
-    For i = 1 To 20
-      Motor.StartSync(motors, left_forward * -1 * i, right_forward * -1 * i)
-      Program.Delay(20)
-    EndFor
-    Motor.MoveSync(motors, left_forward * -20, right_forward * -20, no_back + Motor.GetCount(not_inversed_motor), "True")
-    delay()
+    'Motor.ResetCount(not_inversed_motor)
+    'For i = 1 To 20
+      'Motor.StartSync(motors, left_forward * -1 * i, right_forward * -1 * i)
+      'Program.Delay(20)
+    'EndFor
+    'Motor.MoveSync(motors, left_forward * -20, right_forward * -20, no_back + Motor.GetCount(not_inversed_motor), "True")
+    'delay()
+    deg = no_back
+    move_backward()
   EndIf
   
+  ' 180
   Motor.MoveSync(motors, left_forward * 20, right_forward * -20, 180, "True")
   stop()
   delay()
@@ -1080,7 +1094,7 @@ Sub main
   reset_values()
   
   Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 100, "True")
-  a = a + 5
+  a = a + 7
   Motor.ResetCount(not_inversed_motor)
   While Motor.GetCount(not_inversed_motor) < 310
     Ultrasonic_slow()
@@ -1220,11 +1234,13 @@ Sub main
   EndIf
   reset_values()
   
-  deg = 150
+  ' 150
+  deg = 170
   move_forward()
-  a = 490
+ ' 490
+  a = 493
   Motor.ResetCount(not_inversed_motor)
-  While Motor.GetCount(not_inversed_motor) < 200
+  While Motor.GetCount(not_inversed_motor) < 180
     Ultrasonic_slow()
   EndWhile
   deg = 170
@@ -1304,7 +1320,9 @@ Sub main
   reset_values()
   
   delay()
-  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 160, "True")
+  deg = 160
+  move_forward()
+  'Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 160, "True")
   
   ' Жёлтая зона, второй элемент
   Sensor.SetMode(left_sensor, 1)

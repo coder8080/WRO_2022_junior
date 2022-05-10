@@ -152,7 +152,8 @@ Motor.StartPower ( gv_left_motor , ( 35 - gv_up ) * gv_left_forward )
 gv_lasterror = gv_nowerror
 EndSub
 Sub f_take_chem_on_left_0
-Motor.MoveSync ( gv_motors , gv_left_forward * 20 , gv_right_forward * 20 , 280 , "True" )
+gv_deg = 280
+f_move_forward_0 ()
 f_delay_0 ()
 Motor.ResetCount ( gv_left_motor )
 For gv_i = 1 To 20
@@ -161,24 +162,21 @@ Program.Delay ( 10 )
 EndFor
 Motor.Move ( gv_left_motor , - 20 * gv_left_forward , 360 + ( Motor.GetCount ( gv_left_motor ) * gv_left_forward ) , "True" )
 Motor.Move ( gv_grabber_motor , 100 , 165 , "True" )
-Motor.MoveSync ( gv_motors , gv_left_forward * 20 , gv_right_forward * 20 , 70 , "True" )
+gv_deg = 70
+f_move_forward_0 ()
 Motor.Move ( gv_grabber_motor , 100 , 100 , "True" )
 f_delay_0 ()
-Motor.ResetCount ( gv_not_inversed_motor )
-For gv_i = 1 To 20
-Motor.StartSync ( gv_motors , gv_left_forward * - 1 * gv_i , gv_right_forward * - 1 * gv_i )
-Program.Delay ( 15 )
-EndFor
-Motor.MoveSync ( gv_motors , gv_left_forward * - 20 , gv_right_forward * - 20 , 100 + Motor.GetCount ( gv_not_inversed_motor ) , "True" )
+f_move_backward_0 ()
 Motor.ResetCount ( gv_left_motor )
 For gv_i = 1 To 20
 Motor.Start ( gv_left_motor , gv_left_forward * gv_i )
 Program.Delay ( 10 )
 EndFor
-Motor.Move ( gv_left_motor , 20 * gv_left_forward , 360 - ( Motor.GetCount ( gv_left_motor ) * gv_left_forward ) , "True" )
+Motor.Move ( gv_left_motor , 20 * gv_left_forward , 350 - ( Motor.GetCount ( gv_left_motor ) * gv_left_forward ) , "True" )
 f_stop_0 ()
 f_delay_0 ()
-Motor.MoveSync ( gv_motors , gv_left_forward * - 20 , gv_right_forward * - 20 , 280 , "True" )
+gv_deg = 280
+f_move_backward_0 ()
 f_stop_0 ()
 f_delay_0 ()
 EndSub
@@ -394,7 +392,7 @@ EndWhile
 While Sensor.ReadPercent ( gv_line_sensor ) > 10
 EndWhile
 f_stop_right_0 ()
-gv_a = 99
+gv_a = 105
 f_delay_0 ()
 Motor.Move ( gv_left_motor , gv_left_forward * 20 , 290 , "True" )
 f_delay_0 ()
@@ -432,7 +430,7 @@ gv_w = Sensor.ReadRawValue ( gv_right_sensor , 0 )
 Sensor.SetMode ( gv_right_sensor , 1 )
 gv_object = "None"
 f_update_display_0 ()
-If gv_w > 30 Then
+If gv_w > 25 Then
 gv_object = "Chemical"
 f_update_display_0 ()
 gv_chem = "True"
@@ -659,13 +657,8 @@ EndFor
 Motor.MoveSync ( gv_motors , gv_left_forward * - 20 , gv_right_forward * - 20 , gv_chem_back + Motor.GetCount ( gv_not_inversed_motor ) , "True" )
 f_delay_0 ()
 Else
-Motor.ResetCount ( gv_not_inversed_motor )
-For gv_i = 1 To 20
-Motor.StartSync ( gv_motors , gv_left_forward * - 1 * gv_i , gv_right_forward * - 1 * gv_i )
-Program.Delay ( 20 )
-EndFor
-Motor.MoveSync ( gv_motors , gv_left_forward * - 20 , gv_right_forward * - 20 , gv_no_back + Motor.GetCount ( gv_not_inversed_motor ) , "True" )
-f_delay_0 ()
+gv_deg = gv_no_back
+f_move_backward_0 ()
 EndIf
 Motor.MoveSync ( gv_motors , gv_left_forward * 20 , gv_right_forward * - 20 , 180 , "True" )
 f_stop_0 ()
@@ -880,7 +873,7 @@ EndIf
 EndIf
 f_reset_values_0 ()
 Motor.MoveSync ( gv_motors , gv_left_forward * 20 , gv_right_forward * 20 , 100 , "True" )
-gv_a = gv_a + 5
+gv_a = gv_a + 7
 Motor.ResetCount ( gv_not_inversed_motor )
 While Motor.GetCount ( gv_not_inversed_motor ) < 310
 f_ultrasonic_slow_0 ()
@@ -991,11 +984,11 @@ f_take_chem_on_left_accurate_0 ()
 EndIf
 EndIf
 f_reset_values_0 ()
-gv_deg = 150
+gv_deg = 170
 f_move_forward_0 ()
-gv_a = 490
+gv_a = 493
 Motor.ResetCount ( gv_not_inversed_motor )
-While Motor.GetCount ( gv_not_inversed_motor ) < 200
+While Motor.GetCount ( gv_not_inversed_motor ) < 180
 f_ultrasonic_slow_0 ()
 EndWhile
 gv_deg = 170
@@ -1058,7 +1051,8 @@ EndIf
 EndIf
 f_reset_values_0 ()
 f_delay_0 ()
-Motor.MoveSync ( gv_motors , gv_left_forward * 20 , gv_right_forward * 20 , 160 , "True" )
+gv_deg = 160
+f_move_forward_0 ()
 Sensor.SetMode ( gv_left_sensor , 1 )
 f_delay_0 ()
 gv_b = Sensor.ReadRawValue ( gv_left_sensor , 0 )

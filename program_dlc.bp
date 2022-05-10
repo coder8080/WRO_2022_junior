@@ -657,13 +657,11 @@ Sub main
     b = Sensor.ReadRawValue(left_sensor, 0)
     update_display()
     
-    ' 150
     If b > 120 Then
       Sensor.SetMode(left_sensor, 2)
       delay()
       g = Sensor.ReadRawValue(left_sensor, 0)
       Sensor.SetMode(left_sensor, 1)
-      ' 150
       If g > 100 Then
         ' Человек
         object = "L: Human"
@@ -696,7 +694,6 @@ Sub main
     EndIf
   EndIf
   reset_values()
-  ' 130, 130
   chem_back =  140
   no_back = 140
   If take_red_right = "True" Then
@@ -809,13 +806,11 @@ Sub main
       Motor.StartSync(motors, left_forward * -1 * i, right_forward * -1 * i)
       Program.Delay(20)
     EndFor
-    ' 130
     Motor.MoveSync(motors, left_forward * -20, right_forward * -20, no_back + Motor.GetCount(not_inversed_motor), "True")
     delay()
   EndIf
   
-  ' 180
-  Motor.MoveSync(motors, left_forward * 20, right_forward * -20, 170, "True")
+  Motor.MoveSync(motors, left_forward * 20, right_forward * -20, 180, "True")
   stop()
   delay()
   
@@ -823,7 +818,7 @@ Sub main
   Program.Delay(700)
   stop()
   
-  a = Sensor.ReadRawValue(ultrasonic, 0) + 3
+  a = Sensor.ReadRawValue(ultrasonic, 0) + 5
   Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 430, "True")
   Motor.ResetCount(not_inversed_motor)
   While Motor.GetCount(not_inversed_motor) < 200
@@ -904,12 +899,13 @@ Sub main
   delay()
   b = Sensor.ReadRawValue(left_sensor, 0)
   update_display()
-  If b > 70 Then
+  ' 70
+  If b > 55 Then
     Sensor.SetMode(left_sensor, 2)
     delay()
     g = Sensor.ReadRawValue(left_sensor, 0)
     Sensor.SetMode(left_sensor, 1)
-
+    
     If g > 70 Then
       ' Человек
       object = "Human"
@@ -978,13 +974,10 @@ Sub main
   
   Sensor.SetMode(line_sensor, 2)
   Motor.ResetCount(not_inversed_motor)
-  a = 100
-  WHile Motor.GetCount(not_inversed_motor) < 100
+  a = 105
+  While Motor.GetCount(not_inversed_motor) < 100
     Ultrasonic_slow()
   EndWhile
-  stop()
-  beep()
-  Program.Delay(1000)
   Motor.StartSync(motors, left_forward * 20, right_forward * 20)
   While Sensor.ReadRawValue(line_sensor, 0) <> 2
   EndWhile
@@ -1087,7 +1080,7 @@ Sub main
   reset_values()
   
   Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 100, "True")
-  a = 103
+  a = a + 5
   Motor.ResetCount(not_inversed_motor)
   While Motor.GetCount(not_inversed_motor) < 310
     Ultrasonic_slow()
@@ -1309,7 +1302,6 @@ Sub main
     EndIf
   EndIf
   reset_values()
- 
   
   delay()
   Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 160, "True")

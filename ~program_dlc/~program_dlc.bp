@@ -1000,11 +1000,11 @@ f_take_chem_on_left_accurate_0 ()
 EndIf
 EndIf
 f_reset_values_0 ()
-gv_deg = 170
+gv_deg = 180
 f_move_forward_0 ()
-gv_a = 490
+gv_a = 491
 Motor.ResetCount ( gv_not_inversed_motor )
-While Motor.GetCount ( gv_not_inversed_motor ) < 180
+While Motor.GetCount ( gv_not_inversed_motor ) < 170
 f_ultrasonic_slow_0 ()
 EndWhile
 gv_deg = 170

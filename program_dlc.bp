@@ -1252,12 +1252,12 @@ Sub main
   reset_values()
   
   ' 150
-  deg = 170
+  deg = 180
   move_forward()
   ' 493
-  a = 490
+  a = 491
   Motor.ResetCount(not_inversed_motor)
-  While Motor.GetCount(not_inversed_motor) < 180
+  While Motor.GetCount(not_inversed_motor) < 170
     Ultrasonic_slow()
   EndWhile
   deg = 170

@@ -143,8 +143,8 @@ Sub take_chem_on_left
   delay()
   'Motor.ResetCount(not_inversed_motor)
   'For i = 1 To 20
-    'Motor.StartSync(motors, left_forward * -1 * i, right_forward * -1 * i)
-    'Program.Delay(15)
+  'Motor.StartSync(motors, left_forward * -1 * i, right_forward * -1 * i)
+  'Program.Delay(15)
   'EndFor
   'Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 100 + Motor.GetCount(not_inversed_motor), "True")
   move_backward()
@@ -434,6 +434,23 @@ Sub move_backward
   stop()
 EndSub
 
+Sub take_both
+  Motor.Move(right_motor, right_forward * 15, 360, "True")
+  Motor.MoveSync(motors, left_forward * 15, right_forward * 15, 90, "True")
+  open_cubes()
+  Motor.MoveSync(motors, left_forward * -15, right_forward * -15, 52, "True")
+  close_cubes()
+  Motor.MoveSync(motors, left_forward * -15, right_forward * -15, 180 - 52, "True")
+  Motor.Move(left_motor, left_forward * 20, 360, "True")
+  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 240, "True")
+  open_cubes()
+  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 50, "True")
+  Motor.Move(left_motor, left_forward * -20, 280, "True")
+  Motor.Move(right_motor, right_forward * -20, 280, "True")
+  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 60, "True")
+  cubes_count = 0
+EndSub
+
 ' ---- Основная номинация ----
 Sub main
   
@@ -525,8 +542,8 @@ Sub main
     object = "None"
     update_display()
     
-    ' 30
-    If w > 25 Then
+    ' 25
+    If w > 50 Then
       ' Химикат
       object = "Chemical"
       update_display()
@@ -591,8 +608,8 @@ Sub main
       w = Sensor.ReadRawValue(right_sensor, 0)
       update_display()
       Sensor.SetMode(right_sensor, 1)
-      ' 30
-      If w > 40 Then
+      ' 40
+      If w > 55 Then
         ' Химикат
         object = "Chemical"
         update_display()
@@ -814,8 +831,8 @@ Sub main
     
     'Motor.ResetCount(not_inversed_motor)
     'For i = 1 To 20
-      'Motor.StartSync(motors, left_forward * -1 * i, right_forward * -1 * i)
-      'Program.Delay(20)
+    'Motor.StartSync(motors, left_forward * -1 * i, right_forward * -1 * i)
+    'Program.Delay(20)
     'EndFor
     'Motor.MoveSync(motors, left_forward * -20, right_forward * -20, no_back + Motor.GetCount(not_inversed_motor), "True")
     'delay()
@@ -1237,8 +1254,8 @@ Sub main
   ' 150
   deg = 170
   move_forward()
- ' 490
-  a = 493
+  ' 493
+  a = 490
   Motor.ResetCount(not_inversed_motor)
   While Motor.GetCount(not_inversed_motor) < 180
     Ultrasonic_slow()
@@ -1409,36 +1426,40 @@ Sub main
   
   take_cubes()
   Motor.MoveSync(motors, left_forward * -15, right_forward * -15, 140, "True")
-  delay()
-  If brown_man = "True" Then
-    take_long()
-  EndIf
-  If red_man = "True" Then
+  
+  If red_man = "True" And brown_man = "True" Then
+    take_both()
+  ElseIf red_man = "True" Then
     take_near()
-  EndIf
-  If red_man = "False" Then
+  ElseIf brown_man = "True" Then
+    take_long()
+    Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 210, "True")
+  Else
     Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 210, "True")
   EndIf
   
-  If white_man = "True" Then
-    take_long()
-  EndIf
-  If yellow_man = "True" Then
+  If yellow_man = "True" And white_man = "True" Then
+    take_both()
+  ElseIf yellow_man = "True" Then
     take_near()
-  EndIf
-  If yellow_man = "False" Then
+  ElseIf white_man = "True" Then
+    take_long()
+    Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 210, "True")
+  Else
     Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 210, "True")
   EndIf
   
-  If blue_man = "True" Then
-    take_long()
-  EndIf
-  If green_man = "True" Then
+  If green_man = "True" And blue_man = "True" Then
+    take_both()
+  ElseIf green_man = "True" Then
     take_near()
+  ElseIf blue_man = "True" Then
+    take_long()
+    Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 210, "True")
+  Else
+    Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 210, "True")
   EndIf
-  If green_man = "False" Then
-    Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 220, "True")
-  EndIf
+  
   Motor.Move(right_motor, -15 * right_forward, 360, "True")
   Motor.StartSync(motors, left_forward * -25, right_forward * -25)
   Program.Delay(1500)

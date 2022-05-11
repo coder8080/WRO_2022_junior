@@ -362,6 +362,22 @@ f_go_backward_0 ()
 EndWhile
 f_stop_0 ()
 EndSub
+Sub f_take_both_0
+Motor.Move ( gv_right_motor , gv_right_forward * 15 , 360 , "True" )
+Motor.MoveSync ( gv_motors , gv_left_forward * 15 , gv_right_forward * 15 , 90 , "True" )
+f_open_cubes_0 ()
+Motor.MoveSync ( gv_motors , gv_left_forward * - 15 , gv_right_forward * - 15 , 52 , "True" )
+f_close_cubes_0 ()
+Motor.MoveSync ( gv_motors , gv_left_forward * - 15 , gv_right_forward * - 15 , 180 - 52 , "True" )
+Motor.Move ( gv_left_motor , gv_left_forward * 20 , 360 , "True" )
+Motor.MoveSync ( gv_motors , gv_left_forward * - 20 , gv_right_forward * - 20 , 240 , "True" )
+f_open_cubes_0 ()
+Motor.MoveSync ( gv_motors , gv_left_forward * - 20 , gv_right_forward * - 20 , 50 , "True" )
+Motor.Move ( gv_left_motor , gv_left_forward * - 20 , 280 , "True" )
+Motor.Move ( gv_right_motor , gv_right_forward * - 20 , 280 , "True" )
+Motor.MoveSync ( gv_motors , gv_left_forward * 20 , gv_right_forward * 20 , 60 , "True" )
+gv_cubes_count = 0
+EndSub
 Sub f_main_0
 gv_start_from_right = "False"
 If gv_start_from_right = "True" Then
@@ -430,7 +446,7 @@ gv_w = Sensor.ReadRawValue ( gv_right_sensor , 0 )
 Sensor.SetMode ( gv_right_sensor , 1 )
 gv_object = "None"
 f_update_display_0 ()
-If gv_w > 25 Then
+If gv_w > 50 Then
 gv_object = "Chemical"
 f_update_display_0 ()
 gv_chem = "True"
@@ -483,7 +499,7 @@ Sensor.SetMode ( gv_right_sensor , 4 )
 gv_w = Sensor.ReadRawValue ( gv_right_sensor , 0 )
 f_update_display_0 ()
 Sensor.SetMode ( gv_right_sensor , 1 )
-If gv_w > 40 Then
+If gv_w > 55 Then
 gv_object = "Chemical"
 f_update_display_0 ()
 gv_chem = "True"
@@ -986,7 +1002,7 @@ EndIf
 f_reset_values_0 ()
 gv_deg = 170
 f_move_forward_0 ()
-gv_a = 493
+gv_a = 490
 Motor.ResetCount ( gv_not_inversed_motor )
 While Motor.GetCount ( gv_not_inversed_motor ) < 180
 f_ultrasonic_slow_0 ()
@@ -1119,33 +1135,35 @@ f_stop_0 ()
 Motor.Move ( gv_water_motor , - 50 , 20 , "True" )
 f_take_cubes_0 ()
 Motor.MoveSync ( gv_motors , gv_left_forward * - 15 , gv_right_forward * - 15 , 140 , "True" )
-f_delay_0 ()
-If gv_brown_man = "True" Then
-f_take_long_0 ()
-EndIf
-If gv_red_man = "True" Then
+If gv_red_man = "True" And gv_brown_man = "True" Then
+f_take_both_0 ()
+ElseIf gv_red_man = "True" Then
 f_take_near_0 ()
-EndIf
-If gv_red_man = "False" Then
+ElseIf gv_brown_man = "True" Then
+f_take_long_0 ()
+Motor.MoveSync ( gv_motors , - 15 * gv_left_forward , - 15 * gv_right_forward , 210 , "True" )
+Else
 Motor.MoveSync ( gv_motors , - 15 * gv_left_forward , - 15 * gv_right_forward , 210 , "True" )
 EndIf
-If gv_white_man = "True" Then
-f_take_long_0 ()
-EndIf
-If gv_yellow_man = "True" Then
+If gv_yellow_man = "True" And gv_white_man = "True" Then
+f_take_both_0 ()
+ElseIf gv_yellow_man = "True" Then
 f_take_near_0 ()
-EndIf
-If gv_yellow_man = "False" Then
+ElseIf gv_white_man = "True" Then
+f_take_long_0 ()
+Motor.MoveSync ( gv_motors , - 15 * gv_left_forward , - 15 * gv_right_forward , 210 , "True" )
+Else
 Motor.MoveSync ( gv_motors , - 15 * gv_left_forward , - 15 * gv_right_forward , 210 , "True" )
 EndIf
-If gv_blue_man = "True" Then
-f_take_long_0 ()
-EndIf
-If gv_green_man = "True" Then
+If gv_green_man = "True" And gv_blue_man = "True" Then
+f_take_both_0 ()
+ElseIf gv_green_man = "True" Then
 f_take_near_0 ()
-EndIf
-If gv_green_man = "False" Then
-Motor.MoveSync ( gv_motors , - 15 * gv_left_forward , - 15 * gv_right_forward , 220 , "True" )
+ElseIf gv_blue_man = "True" Then
+f_take_long_0 ()
+Motor.MoveSync ( gv_motors , - 15 * gv_left_forward , - 15 * gv_right_forward , 210 , "True" )
+Else
+Motor.MoveSync ( gv_motors , - 15 * gv_left_forward , - 15 * gv_right_forward , 210 , "True" )
 EndIf
 Motor.Move ( gv_right_motor , - 15 * gv_right_forward , 360 , "True" )
 Motor.StartSync ( gv_motors , gv_left_forward * - 25 , gv_right_forward * - 25 )

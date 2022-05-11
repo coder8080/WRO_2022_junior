@@ -46,12 +46,31 @@ green_man = "False"
 blue_man = "False"
 white_man = "False"
 
+' Текущее состояние
 cubes_count = 2
+
+water_state = 0
 
 object = ""
 b = 0
 w = 0
 
+' Перевод сенсоров в нужный режим
+Sensor.SetMode(line_sensor, 0)
+Sensor.SetMode(right_sensor, 1)
+Sensor.SetMode(left_sensor, 1)
+Sensor.SetMode(ultrasonic, 0)
+
+' Если низкий уровень заряда, уведомить оператора
+If EV3.BatteryVoltage < 8 Then
+  LCD.Clear()
+  LCD.Text(1, 0, 0, 1, "Low battery")
+  beep()
+  delay()
+  beep()
+EndIf
+
+' --- Движения с выравниванием ---
 Sub line
   NowError = 20 - Sensor.ReadPercent(1)
   dif = LastError - NowError
@@ -67,35 +86,6 @@ Sub endless_line
   While "True"
     line()
   EndWhile
-EndSub
-
-If EV3.BatteryVoltage < 8 Then
-  LCD.Clear()
-  LCD.Text(1, 0, 0, 1, "Bitch, we fucked up")
-  beep()
-  delay()
-  beep()
-EndIf
-
-Sensor.SetMode(line_sensor, 0)
-Sensor.SetMode(right_sensor, 1)
-Sensor.SetMode(left_sensor, 1)
-Sensor.SetMode(ultrasonic, 0)
-
-Sub stop
-  Motor.Stop(motors, "True")
-EndSub
-
-Sub stop_right
-  Motor.Stop(right_motor, "True")
-EndSub
-
-Sub stop_left
-  Motor.Stop(left_motor, "True")
-EndSub
-
-Sub delay
-  Program.Delay(500)
 EndSub
 
 Sub Ultrasonic_slow
@@ -119,6 +109,30 @@ Sub Ultrasonic_fast
   Motor.StartPower(left_motor, (35 - up) * left_forward)
   LastError = NowError
 EndSub
+
+' --- Базовые действия ---
+
+Sub stop
+  Motor.Stop(motors, "True")
+EndSub
+
+Sub stop_right
+  Motor.Stop(right_motor, "True")
+EndSub
+
+Sub stop_left
+  Motor.Stop(left_motor, "True")
+EndSub
+
+Sub delay
+  Program.Delay(500)
+EndSub
+
+Sub beep
+  Speaker.Tone(100, 500, 200)
+EndSub
+
+' --- Заборы химиката ---
 
 Sub take_chem_on_left
   deg = 280
@@ -234,16 +248,7 @@ Sub take_chem_on_right
   Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 160 - Motor.GetCount(not_inversed_motor), "True")
 EndSub
 
-Sub line_forward
-  err = Math.Abs(Motor.GetCount(left_motor)) - Math.Abs(Motor.GetCount(right_motor))
-  up = err * 1
-  right_power = 60 + up
-  left_power = 60 - up
-  Motor.StartSync(motors, left_power * left_forward, right_power * right_forward)
-EndSub
-
-water_state = 0
-
+' Выброс воды
 Sub kick_water
   If water_state = 0 Then
     Motor.Start(water_motor, -30)
@@ -257,15 +262,7 @@ Sub kick_water
   EndIf
 EndSub
 
-Sub reset_forward
-  Motor.ResetCount(not_inversed_motor)
-  For i = 1 To 20
-    Motor.StartSync(motors, left_forward * i, right_forward * i)
-    Program.Delay(10)
-  EndFor
-  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 140 - Motor.GetCount(not_inversed_motor), "True")
-EndSub
-
+' Движеня около чёрной линии
 Sub turn_right_by_sensor
   Motor.ResetCount(left_motor)
   For i = 1 To 20
@@ -287,9 +284,7 @@ Sub line_to_crossroad
   stop()
 EndSub
 
-Sub beep
-  Speaker.Tone(100, 500, 200)
-EndSub
+ ' --- Работа с экраном
 
 Sub update_display
   LCD.StopUpdate()
@@ -306,24 +301,7 @@ Sub reset_values
   w = 0
 EndSub
 
-Sub Rotate_left
-  Motor.MoveSync(motors, left_forward * 10 * -1, right_forward * 10, 185, "True")
-EndSub
-
-Sub Rotate_right
-  Motor.MoveSync(motors, left_forward * 10, right_forward * 10 * -1, 185, "True")
-EndSub
-
-Sub back_for_block
-  open_cubes()
-  Motor.MoveSync(motors, left_forward * -1 * 10, right_forward * -1 * 10, 52, "True")
-  close_cubes()
-EndSub
-
-Sub back_for_block_2
-  Motor.Move(water_motor, -10, 75, "True")
-  Motor.MoveSync(motors, left_forward * -1 * 10, right_forward * -1 * 10, 75, "True")
-EndSub
+' --- Развозы ---
 
 Sub close_cubes
   Motor.Move(water_motor, -10, 70, "True")
@@ -382,6 +360,24 @@ Sub take_near
   cubes_count = 1
 EndSub
 
+Sub take_both
+  Motor.Move(right_motor, right_forward * 15, 360, "True")
+  Motor.MoveSync(motors, left_forward * 15, right_forward * 15, 90, "True")
+  open_cubes()
+  Motor.MoveSync(motors, left_forward * -15, right_forward * -15, 52, "True")
+  close_cubes()
+  Motor.MoveSync(motors, left_forward * -15, right_forward * -15, 180 - 52, "True")
+  Motor.Move(left_motor, left_forward * 20, 360, "True")
+  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 240, "True")
+  open_cubes()
+  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 50, "True")
+  Motor.Move(left_motor, left_forward * -20, 280, "True")
+  Motor.Move(right_motor, right_forward * -20, 280, "True")
+  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 60, "True")
+  cubes_count = 0
+EndSub
+
+' Езда с выравнием по энкодерам моторов
 Sub go_forward
   r_c = Motor.GetCount(right_motor) * right_forward
   l_c = Motor.GetCount(left_motor) * left_forward
@@ -420,26 +416,8 @@ Sub move_backward
   stop()
 EndSub
 
-Sub take_both
-  Motor.Move(right_motor, right_forward * 15, 360, "True")
-  Motor.MoveSync(motors, left_forward * 15, right_forward * 15, 90, "True")
-  open_cubes()
-  Motor.MoveSync(motors, left_forward * -15, right_forward * -15, 52, "True")
-  close_cubes()
-  Motor.MoveSync(motors, left_forward * -15, right_forward * -15, 180 - 52, "True")
-  Motor.Move(left_motor, left_forward * 20, 360, "True")
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 240, "True")
-  open_cubes()
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 50, "True")
-  Motor.Move(left_motor, left_forward * -20, 280, "True")
-  Motor.Move(right_motor, right_forward * -20, 280, "True")
-  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 60, "True")
-  cubes_count = 0
-EndSub
-
 ' ---- Основная номинация ----
 Sub main
-  
   ' --- Проезд из правой зоны старта в левую ---
   start_from_right = "False"
   
@@ -588,7 +566,7 @@ Sub main
       w = Sensor.ReadRawValue(right_sensor, 0)
       update_display()
       Sensor.SetMode(right_sensor, 1)
-
+      
       If w > 55 Then
         ' Химикат
         object = "Chemical"
@@ -983,15 +961,15 @@ Sub main
   EndWhile
   stop()
   Sensor.SetMode(line_sensor, 0)
-  delay()
-  deg = 115
-  move_backward()
-  stop()
   
   ' Зелёная зона, второй элемент
   
-  delay()
   If green = "False" Then
+    delay()
+    deg = 115
+    move_backward()
+    delay()
+    
     b = Sensor.ReadRawValue(left_sensor, 0)
     If b > 70 Then
       Sensor.SetMode(left_sensor, 2)
@@ -1032,11 +1010,14 @@ Sub main
       EndIf
     EndIf
     update_display()
+    
+    stop()
+    deg = 170
+    move_forward()
+  Else
+    deg = 55
+    move_forward()
   EndIf
-  
-  stop()
-  deg = 170
-  move_forward()
   
   ' Синяя зона, первый элемент
   

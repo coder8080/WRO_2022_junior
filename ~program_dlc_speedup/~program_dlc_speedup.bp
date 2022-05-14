@@ -56,6 +56,12 @@ gv_take_red_left = ""
 gv_chem_back = 0
 gv_no_back = 0
 gv_ultra = 0
+gv_t = 0
+gv_mins = 0
+gv_secs = 0
+gv_str = ""
+gv_n = 0
+gv_filename = ""
 gv_left_motor = "A"
 gv_right_motor = "B"
 gv_not_inversed_motor = "B"
@@ -408,7 +414,22 @@ f_go_backward_0 ()
 EndWhile
 f_stop_0 ()
 EndSub
+Sub f_play_music_0
+gv_n = 1
+While "True"
+gv_filename = "WRO_2022/files/bad_piggies_" + gv_n
+Speaker.Play ( 100 , gv_filename )
+While Speaker.IsBusy ()
+EndWhile
+gv_n = gv_n + 1
+If gv_n = 23 Then
+gv_n = 1
+Program.Delay ( 1000 )
+EndIf
+EndWhile
+EndSub
 Sub f_main_0
+Time.Reset1 ()
 gv_start_from_right = "False"
 If gv_start_from_right = "True" Then
 Motor.StartSync ( gv_motors , gv_left_forward * 50 , gv_right_forward * 53 )
@@ -470,13 +491,13 @@ f_move_backward_0 ()
 f_kick_water_0 ()
 f_move_forward_0 ()
 EndIf
-ElseIf gv_b > 5 Then
+ElseIf gv_b > 5 Or gv_b < 16 Then
 Sensor.SetMode ( gv_right_sensor , 4 )
 gv_w = Sensor.ReadRawValue ( gv_right_sensor , 0 )
 Sensor.SetMode ( gv_right_sensor , 1 )
 gv_object = "None"
 f_update_display_0 ()
-If gv_w > 50 Then
+If gv_w > 30 Or gv_w < 15 Then
 gv_object = "Chemical"
 f_update_display_0 ()
 gv_chem = "True"
@@ -522,12 +543,12 @@ f_move_backward_0 ()
 f_kick_water_0 ()
 f_move_forward_0 ()
 EndIf
-ElseIf gv_b > 12 Then
+ElseIf gv_b > 12 Or gv_b < 16 Then
 Sensor.SetMode ( gv_right_sensor , 4 )
 gv_w = Sensor.ReadRawValue ( gv_right_sensor , 0 )
 f_update_display_0 ()
 Sensor.SetMode ( gv_right_sensor , 1 )
-If gv_w > 55 Then
+If gv_w > 30 Or gv_w < 15 Then
 gv_object = "Chemical"
 f_update_display_0 ()
 gv_chem = "True"
@@ -1142,7 +1163,6 @@ f_delay_0 ()
 Motor.MoveSync ( gv_motors , gv_left_forward * - 20 , gv_right_forward * 20 , 380 , "True" )
 f_stop_0 ()
 f_delay_0 ()
-Program.Delay ( 5000 )
 Motor.MoveSync ( gv_motors , gv_left_forward * 20 , gv_right_forward * 20 , 300 , "True" )
 Else
 gv_deg = 200
@@ -1245,4 +1265,11 @@ Program.Delay ( 4000 )
 f_stop_0 ()
 Motor.MoveSync ( gv_motors , gv_left_forward * - 20 , gv_right_forward * - 20 , 20 , "True" )
 EndIf
+gv_t = Time.Get1 ()
+gv_mins = Math.Floor ( gv_t / 60000 )
+gv_secs = Math.Floor ( Math.Remainder ( gv_t , 60000 ) / 1000 )
+LCD.Clear ()
+gv_str = gv_mins + ":" + gv_secs
+LCD.Text ( 1 , 10 , 10 , 2 , gv_str )
+f_play_music_0 ()
 EndSub

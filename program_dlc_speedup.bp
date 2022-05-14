@@ -449,8 +449,25 @@ Sub move_backward
   stop()
 EndSub
 
+' Воспроизведение музыки
+Sub play_music
+  n = 1
+  While "True"
+    filename = "WRO_2022/files/bad_piggies_" + n
+    Speaker.Play(100, filename)
+    While Speaker.IsBusy()
+    EndWhile
+    n = n + 1
+    If n = 23 Then
+      n = 1
+      Program.Delay(1000)
+    EndIf
+  EndWhile
+EndSub
+
 ' ---- Основная номинация ----
 Sub main
+  Time.Reset1()
   ' --- Проезд из правой зоны старта в левую ---
   start_from_right = "False"
   
@@ -525,7 +542,7 @@ Sub main
       kick_water()
       move_forward()
     EndIf
-  ElseIf b > 5 Then
+  ElseIf b > 5 Or b < 16 Then
     ' Отличаем химикат от пустоты в режиме белого
     
     Sensor.SetMode(right_sensor, 4)
@@ -534,7 +551,8 @@ Sub main
     object = "None"
     update_display()
     
-    If w > 50 Then
+    ' 50
+    If w > 30 Or w < 15 Then
       ' Химикат
       object = "Chemical"
       update_display()
@@ -592,13 +610,14 @@ Sub main
         kick_water()
         move_forward()
       EndIf
-    ElseIf b > 12 Then
+    ElseIf b > 12 Or b < 16 Then
       Sensor.SetMode(right_sensor, 4)
       w = Sensor.ReadRawValue(right_sensor, 0)
       update_display()
       Sensor.SetMode(right_sensor, 1)
       
-      If w > 55 Then
+      '  55
+      If w > 30 Or w < 15 Then
         ' Химикат
         object = "Chemical"
         update_display()
@@ -1369,7 +1388,6 @@ Sub main
     stop()
     delay()
     
-    Program.Delay(5000)
     Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 300, "True")
   Else
     deg = 200
@@ -1485,6 +1503,15 @@ Sub main
     stop()
     Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 20, "True")
   EndIf
+  
+  t = Time.Get1()
+  mins = Math.Floor(t / 60000)
+  secs = Math.Floor(Math.Remainder(t, 60000) / 1000)
+  LCD.Clear()
+  str = mins + ":" + secs
+  LCD.Text(1, 10, 10, 2, str)
+  
+  play_music()
 EndSub
 
 main()

@@ -105,8 +105,8 @@ Sub Ultrasonic_fast
   integral = (integral + NowError) / 10
   derivative = NowError - LastError
   up = ((NowError * p_u) + (integral * d_u))
-  Motor.StartPower(right_motor, (35 + up) * right_forward)
-  Motor.StartPower(left_motor, (35 - up) * left_forward)
+  Motor.StartPower(right_motor, (30 + up) * right_forward)
+  Motor.StartPower(left_motor, (30 - up) * left_forward)
   LastError = NowError
 EndSub
 
@@ -125,7 +125,7 @@ Sub stop_left
 EndSub
 
 Sub delay
-  Program.Delay(500)
+  Program.Delay(300)
 EndSub
 
 Sub beep
@@ -330,43 +330,43 @@ Sub take_cubes
 EndSub
 
 Sub take_long
-  Motor.Move(right_motor, right_forward * 15, 360, "True")
-  Motor.MoveSync(motors, left_forward * 15, right_forward * 15, 90, "True")
+  Motor.Move(right_motor, right_forward * 20, 360, "True")
+  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 90, "True")
   open_cubes()
-  Motor.MoveSync(motors, left_forward * -15, right_forward * -15, 52, "True")
+  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 52, "True")
   If cubes_count = 2 Then
     close_cubes()
   EndIf
-  Motor.MoveSync(motors, left_forward * -15, right_forward * -15, 90 - 52, "True")
-  Motor.Move(right_motor, right_forward * -15, 360, "True")
+  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 90 - 52, "True")
+  Motor.Move(right_motor, right_forward * -20, 360, "True")
   cubes_count = 1
 EndSub
 
 Sub take_near
-  Motor.Move(right_motor, -15 * right_forward, 250, "True")
-  Motor.Move(left_motor, -15 * left_forward, 250, "True")
+  Motor.Move(right_motor, -20 * right_forward, 250, "True")
+  Motor.Move(left_motor, -20 * left_forward, 250, "True")
   delay()
-  Motor.MoveSync(motors, 15 * left_forward, 15 * right_forward, 230, "True")
+  Motor.MoveSync(motors, 20 * left_forward, 20 * right_forward, 230, "True")
   open_cubes()
-  Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 52, "True")
+  Motor.MoveSync(motors, -20 * left_forward, -20 * right_forward, 52, "True")
   If cubes_count = 2 Then
     close_cubes()
   EndIf
-  Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 230 - 52, "True")
-  Motor.Move(left_motor, left_forward * -15, 250, "True")
-  Motor.Move(right_motor, right_forward * -15, 250, "True")
+  Motor.MoveSync(motors, -20 * left_forward, -20 * right_forward, 230 - 52, "True")
+  Motor.Move(left_motor, left_forward * -20, 250, "True")
+  Motor.Move(right_motor, right_forward * -20, 250, "True")
   delay()
-  Motor.MoveSync(motors, left_forward * 15, right_forward * 15, 200, "True")
+  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 200, "True")
   cubes_count = 1
 EndSub
 
 Sub take_both
-  Motor.Move(right_motor, right_forward * 15, 360, "True")
-  Motor.MoveSync(motors, left_forward * 15, right_forward * 15, 90, "True")
+  Motor.Move(right_motor, right_forward * 20, 360, "True")
+  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 90, "True")
   open_cubes()
-  Motor.MoveSync(motors, left_forward * -15, right_forward * -15, 52, "True")
+  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 52, "True")
   close_cubes()
-  Motor.MoveSync(motors, left_forward * -15, right_forward * -15, 180 - 52, "True")
+  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 180 - 52, "True")
   Motor.Move(left_motor, left_forward * 20, 360, "True")
   Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 240, "True")
   open_cubes()
@@ -551,8 +551,8 @@ Sub main
     object = "None"
     update_display()
     
-    ' 50
-    If w > 30 Or w < 15 Then
+    ' 30
+    If w > 50 Or w < 15 Then
       ' Химикат
       object = "Chemical"
       update_display()
@@ -616,8 +616,8 @@ Sub main
       update_display()
       Sensor.SetMode(right_sensor, 1)
       
-      '  55
-      If w > 30 Or w < 15 Then
+      '  55, 30
+      If w > 55 Or w < 15 Then
         ' Химикат
         object = "Chemical"
         update_display()
@@ -852,7 +852,7 @@ Sub main
   Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 430, "True")
   Motor.ResetCount(not_inversed_motor)
   While Motor.GetCount(not_inversed_motor) < 200
-    Ultrasonic_slow()
+    Ultrasonic_fast()
   EndWhile
   
   Motor.ResetCount(not_inversed_motor)
@@ -917,7 +917,7 @@ Sub main
   a = a - 5
   Motor.ResetCount(not_inversed_motor)
   While Motor.GetCount(not_inversed_motor) < 250
-    Ultrasonic_slow()
+    Ultrasonic_fast()
   EndWhile
   Motor.StartSync(motors, left_forward * 20, right_forward * 20)
   Program.Delay(2000)
@@ -1113,7 +1113,7 @@ Sub main
   a = a + 7
   Motor.ResetCount(not_inversed_motor)
   While Motor.GetCount(not_inversed_motor) < 310
-    Ultrasonic_slow()
+    Ultrasonic_fast()
   EndWhile
   
   deg = 110
@@ -1511,7 +1511,8 @@ Sub main
   str = mins + ":" + secs
   LCD.Text(1, 10, 10, 2, str)
   
-  play_music()
+  'play_music()
+  Program.Delay(100000000)
 EndSub
 
 main()

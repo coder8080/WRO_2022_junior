@@ -60,8 +60,6 @@ gv_t = 0
 gv_mins = 0
 gv_secs = 0
 gv_str = ""
-gv_n = 0
-gv_filename = ""
 gv_left_motor = "A"
 gv_right_motor = "B"
 gv_not_inversed_motor = "B"
@@ -144,8 +142,8 @@ gv_dif = gv_lasterror - gv_nowerror
 gv_integral = ( gv_integral + gv_nowerror ) / 10
 gv_derivative = gv_nowerror - gv_lasterror
 gv_up = ( ( gv_nowerror * gv_p_u ) + ( gv_integral * gv_d_u ) )
-Motor.StartPower ( gv_right_motor , ( 35 + gv_up ) * gv_right_forward )
-Motor.StartPower ( gv_left_motor , ( 35 - gv_up ) * gv_left_forward )
+Motor.StartPower ( gv_right_motor , ( 30 + gv_up ) * gv_right_forward )
+Motor.StartPower ( gv_left_motor , ( 30 - gv_up ) * gv_left_forward )
 gv_lasterror = gv_nowerror
 EndSub
 Sub f_stop_0
@@ -155,7 +153,7 @@ Sub f_stop_right_0
 Motor.Stop ( gv_right_motor , "True" )
 EndSub
 Sub f_delay_0
-Program.Delay ( 500 )
+Program.Delay ( 300 )
 EndSub
 Sub f_beep_0
 Speaker.Tone ( 100 , 500 , 200 )
@@ -306,41 +304,41 @@ f_stop_0 ()
 f_close_cubes_0 ()
 EndSub
 Sub f_take_long_0
-Motor.Move ( gv_right_motor , gv_right_forward * 15 , 360 , "True" )
-Motor.MoveSync ( gv_motors , gv_left_forward * 15 , gv_right_forward * 15 , 90 , "True" )
+Motor.Move ( gv_right_motor , gv_right_forward * 20 , 360 , "True" )
+Motor.MoveSync ( gv_motors , gv_left_forward * 20 , gv_right_forward * 20 , 90 , "True" )
 f_open_cubes_0 ()
-Motor.MoveSync ( gv_motors , gv_left_forward * - 15 , gv_right_forward * - 15 , 52 , "True" )
+Motor.MoveSync ( gv_motors , gv_left_forward * - 20 , gv_right_forward * - 20 , 52 , "True" )
 If gv_cubes_count = 2 Then
 f_close_cubes_0 ()
 EndIf
-Motor.MoveSync ( gv_motors , gv_left_forward * - 15 , gv_right_forward * - 15 , 90 - 52 , "True" )
-Motor.Move ( gv_right_motor , gv_right_forward * - 15 , 360 , "True" )
+Motor.MoveSync ( gv_motors , gv_left_forward * - 20 , gv_right_forward * - 20 , 90 - 52 , "True" )
+Motor.Move ( gv_right_motor , gv_right_forward * - 20 , 360 , "True" )
 gv_cubes_count = 1
 EndSub
 Sub f_take_near_0
-Motor.Move ( gv_right_motor , - 15 * gv_right_forward , 250 , "True" )
-Motor.Move ( gv_left_motor , - 15 * gv_left_forward , 250 , "True" )
+Motor.Move ( gv_right_motor , - 20 * gv_right_forward , 250 , "True" )
+Motor.Move ( gv_left_motor , - 20 * gv_left_forward , 250 , "True" )
 f_delay_0 ()
-Motor.MoveSync ( gv_motors , 15 * gv_left_forward , 15 * gv_right_forward , 230 , "True" )
+Motor.MoveSync ( gv_motors , 20 * gv_left_forward , 20 * gv_right_forward , 230 , "True" )
 f_open_cubes_0 ()
-Motor.MoveSync ( gv_motors , - 15 * gv_left_forward , - 15 * gv_right_forward , 52 , "True" )
+Motor.MoveSync ( gv_motors , - 20 * gv_left_forward , - 20 * gv_right_forward , 52 , "True" )
 If gv_cubes_count = 2 Then
 f_close_cubes_0 ()
 EndIf
-Motor.MoveSync ( gv_motors , - 15 * gv_left_forward , - 15 * gv_right_forward , 230 - 52 , "True" )
-Motor.Move ( gv_left_motor , gv_left_forward * - 15 , 250 , "True" )
-Motor.Move ( gv_right_motor , gv_right_forward * - 15 , 250 , "True" )
+Motor.MoveSync ( gv_motors , - 20 * gv_left_forward , - 20 * gv_right_forward , 230 - 52 , "True" )
+Motor.Move ( gv_left_motor , gv_left_forward * - 20 , 250 , "True" )
+Motor.Move ( gv_right_motor , gv_right_forward * - 20 , 250 , "True" )
 f_delay_0 ()
-Motor.MoveSync ( gv_motors , gv_left_forward * 15 , gv_right_forward * 15 , 200 , "True" )
+Motor.MoveSync ( gv_motors , gv_left_forward * 20 , gv_right_forward * 20 , 200 , "True" )
 gv_cubes_count = 1
 EndSub
 Sub f_take_both_0
-Motor.Move ( gv_right_motor , gv_right_forward * 15 , 360 , "True" )
-Motor.MoveSync ( gv_motors , gv_left_forward * 15 , gv_right_forward * 15 , 90 , "True" )
+Motor.Move ( gv_right_motor , gv_right_forward * 20 , 360 , "True" )
+Motor.MoveSync ( gv_motors , gv_left_forward * 20 , gv_right_forward * 20 , 90 , "True" )
 f_open_cubes_0 ()
-Motor.MoveSync ( gv_motors , gv_left_forward * - 15 , gv_right_forward * - 15 , 52 , "True" )
+Motor.MoveSync ( gv_motors , gv_left_forward * - 20 , gv_right_forward * - 20 , 52 , "True" )
 f_close_cubes_0 ()
-Motor.MoveSync ( gv_motors , gv_left_forward * - 15 , gv_right_forward * - 15 , 180 - 52 , "True" )
+Motor.MoveSync ( gv_motors , gv_left_forward * - 20 , gv_right_forward * - 20 , 180 - 52 , "True" )
 Motor.Move ( gv_left_motor , gv_left_forward * 20 , 360 , "True" )
 Motor.MoveSync ( gv_motors , gv_left_forward * - 20 , gv_right_forward * - 20 , 240 , "True" )
 f_open_cubes_0 ()
@@ -414,20 +412,6 @@ f_go_backward_0 ()
 EndWhile
 f_stop_0 ()
 EndSub
-Sub f_play_music_0
-gv_n = 1
-While "True"
-gv_filename = "WRO_2022/files/bad_piggies_" + gv_n
-Speaker.Play ( 100 , gv_filename )
-While Speaker.IsBusy ()
-EndWhile
-gv_n = gv_n + 1
-If gv_n = 23 Then
-gv_n = 1
-Program.Delay ( 1000 )
-EndIf
-EndWhile
-EndSub
 Sub f_main_0
 Time.Reset1 ()
 gv_start_from_right = "False"
@@ -497,7 +481,7 @@ gv_w = Sensor.ReadRawValue ( gv_right_sensor , 0 )
 Sensor.SetMode ( gv_right_sensor , 1 )
 gv_object = "None"
 f_update_display_0 ()
-If gv_w > 30 Or gv_w < 15 Then
+If gv_w > 50 Or gv_w < 15 Then
 gv_object = "Chemical"
 f_update_display_0 ()
 gv_chem = "True"
@@ -548,7 +532,7 @@ Sensor.SetMode ( gv_right_sensor , 4 )
 gv_w = Sensor.ReadRawValue ( gv_right_sensor , 0 )
 f_update_display_0 ()
 Sensor.SetMode ( gv_right_sensor , 1 )
-If gv_w > 30 Or gv_w < 15 Then
+If gv_w > 55 Or gv_w < 15 Then
 gv_object = "Chemical"
 f_update_display_0 ()
 gv_chem = "True"
@@ -735,7 +719,7 @@ gv_a = Sensor.ReadRawValue ( gv_ultrasonic , 0 ) + 5
 Motor.MoveSync ( gv_motors , gv_left_forward * 20 , gv_right_forward * 20 , 430 , "True" )
 Motor.ResetCount ( gv_not_inversed_motor )
 While Motor.GetCount ( gv_not_inversed_motor ) < 200
-f_ultrasonic_slow_0 ()
+f_ultrasonic_fast_0 ()
 EndWhile
 Motor.ResetCount ( gv_not_inversed_motor )
 Motor.StartSync ( gv_motors , gv_left_forward * 20 , gv_right_forward * 20 )
@@ -786,7 +770,7 @@ f_move_forward_0 ()
 gv_a = gv_a - 5
 Motor.ResetCount ( gv_not_inversed_motor )
 While Motor.GetCount ( gv_not_inversed_motor ) < 250
-f_ultrasonic_slow_0 ()
+f_ultrasonic_fast_0 ()
 EndWhile
 Motor.StartSync ( gv_motors , gv_left_forward * 20 , gv_right_forward * 20 )
 Program.Delay ( 2000 )
@@ -943,7 +927,7 @@ Motor.MoveSync ( gv_motors , gv_left_forward * 20 , gv_right_forward * 20 , 100 
 gv_a = gv_a + 7
 Motor.ResetCount ( gv_not_inversed_motor )
 While Motor.GetCount ( gv_not_inversed_motor ) < 310
-f_ultrasonic_slow_0 ()
+f_ultrasonic_fast_0 ()
 EndWhile
 gv_deg = 110
 f_move_forward_0 ()
@@ -1271,5 +1255,5 @@ gv_secs = Math.Floor ( Math.Remainder ( gv_t , 60000 ) / 1000 )
 LCD.Clear ()
 gv_str = gv_mins + ":" + gv_secs
 LCD.Text ( 1 , 10 , 10 , 2 , gv_str )
-f_play_music_0 ()
+Program.Delay ( 100000000 )
 EndSub

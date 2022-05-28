@@ -327,16 +327,21 @@ Sub take_cubes
   delay()
   Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 150, "True")
   delay()
-  Motor.Start(right_motor, right_forward * -30)
-  Program.Delay(1500)
+  'Motor.Start(right_motor, right_forward * -30)
+  'Program.Delay(1500)
+  'stop()
+  'delay()
+  Motor.Move(right_motor, -20, 360, "True")
+  Motor.StartSync(motors, left_forward * -20, right_forward * -20)
+  Program.Delay(1000)
   stop()
-  delay()
   Motor.ResetCount(not_inversed_motor)
   a = 227
   While Motor.GetCount(not_inversed_motor) < 930
     Ultrasonic_slow()
   EndWhile
   stop()
+  Motor.Move(water_motor, -50, 20, "True")
   close_cubes()
 EndSub
 
@@ -478,7 +483,7 @@ EndSub
 
 ' ---- Основная номинация ----
 Sub main
-  Time.Reset1()
+  Time.Reset9()
   ' --- Проезд из правой зоны старта в левую ---
   start_from_right = "False"
   
@@ -513,6 +518,8 @@ Sub main
   EndWhile
   stop_right()
   
+  ' 290, 240
+  ' 260, 230
   a = 105
   delay()
   Motor.Move(left_motor, left_forward * 20, 290, "True")
@@ -565,7 +572,7 @@ Sub main
     
     ' 30
     'If w > 50 Or w < 15 Then
-    If w > 29 Or w < 22 Then
+    If w > 29 Then
       ' Химикат
       object = "Chemical"
       update_display()
@@ -727,10 +734,19 @@ Sub main
         kick_water()
       EndIf
     Else
-      Sensor.SetMode(left_sensor, 2)
-      g = Sensor.ReadRawValue(left_sensor, 0)
-      Sensor.SetMode(left_sensor, 1)
-      If g > 25 Or g < 18 Then
+      'Sensor.SetMode(left_sensor, 2)
+      'g = Sensor.ReadRawValue(left_sensor, 0)
+      'Sensor.SetMode(left_sensor, 1)
+      'If g > 25 Or g < 18 Then
+      Motor.Move(right_motor, right_forward * -20, 30, "True")
+      Program.Delay(500)
+      b = Sensor.ReadRawValue(left_sensor, 0)
+      LCD.Clear()
+      LCD.Text(1, 0, 0, 2, b)
+      Motor.Start(right_motor, right_forward * 20)
+      Program.Delay(500)
+      If b > 28 Then
+        stop()
         ' Химикат
         chem = "True"
         red = "True"
@@ -743,8 +759,8 @@ Sub main
     EndIf
   EndIf
   reset_values()
-  ' 140, 140
-  chem_back =  120
+  ' 140, 140, 120, 120
+  chem_back =  130
   no_back = 120
   If take_red_right = "True" Then
     ' Забор химиката справа
@@ -877,7 +893,8 @@ Sub main
   EndWhile
   stop()
   delay()
-  deg = 95
+  ' 95
+  deg = 92
   move_backward()
   Sensor.SetMode(line_sensor, 0)
   
@@ -887,7 +904,8 @@ Sub main
   b = Sensor.ReadRawValue(left_sensor, 0)
   update_display()
   
-  If b > 55 Then
+  ' 55
+  If b > 45 Then
     Sensor.SetMode(left_sensor, 2)
     delay()
     g = Sensor.ReadRawValue(left_sensor, 0)
@@ -912,7 +930,9 @@ Sub main
     EndIf
   Else
     ultra = Sensor.ReadRawValue(ultrasonic, 0)
-    
+    LCD.Clear()
+    LCD.Text(1, 0, 0, 2, ultra)
+    Program.Delay(1000)
     If ultra < 85 Then
       ' Химикат
       chem = "True"
@@ -928,8 +948,8 @@ Sub main
   
   deg = 115
   move_forward()
-  
-  a = a - 5
+  ' - 5
+  a = a - 0
   Motor.ResetCount(not_inversed_motor)
   While Motor.GetCount(not_inversed_motor) < 250
     Ultrasonic_fast()
@@ -966,13 +986,18 @@ Sub main
       kick_water()
     EndIf
   ElseIf b > 15 Then
-    Sensor.SetMode(left_sensor, 4)
-    delay()
-    w = Sensor.ReadRawValue(left_sensor, 0)
-    Sensor.SetMode(left_sensor, 1)
-    update_display()
+    'Sensor.SetMode(left_sensor, 4)
+    'delay()
+    'w = Sensor.ReadRawValue(left_sensor, 0)
+    'Sensor.SetMode(left_sensor, 1)
+    'update_display()
+    ultra = Sensor.ReadRawValue(ultrasonic, 0)
+    LCD.Clear()
+    LCD.Text(1, 0, 0, 2, ultra)
+    Program.Delay(1000)
     
-    If w > 60 Then
+    'If w > 60 Then
+    If ultra < 85 Then
       ' Химикат
       chem = "True"
       green = "True"
@@ -1017,7 +1042,8 @@ Sub main
   
   'Sensor.SetMode(line_sensor, 2)
   Motor.ResetCount(not_inversed_motor)
-  a = 105
+  ' 105
+  a = 102
   While Motor.GetCount(not_inversed_motor) < 100
     Ultrasonic_slow()
   EndWhile
@@ -1032,7 +1058,8 @@ Sub main
   
   If green = "False" Then
     delay()
-    deg = 115
+    ' 115
+    deg = 110
     move_backward()
     delay()
     
@@ -1136,7 +1163,6 @@ Sub main
   ' 115
   deg = 120
   move_forward()
-  Program.Delay(2000)
   ' Синяя зона, второй элемент
   
   If blue = "False" Then
@@ -1187,6 +1213,8 @@ Sub main
   EndIf
   stop()
   Sensor.SetMode(line_sensor, 0)
+  ' new
+  'Motor.Move(left_motor, left_forward * 20, 15, "True")
   Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 200, "False")
   Motor.StartSync(motors, left_forward * 20, right_forward * 20)
   
@@ -1269,15 +1297,18 @@ Sub main
   ' Белая зона, второй элемент
   c = 710
   If white = "False" Or yellow = "False" Then
+    ' 180
     deg = 180
     move_forward()
-    ' 491
-    a = 500
+    ' 491, 500, 503
+    a = 504
     Motor.ResetCount(not_inversed_motor)
-    While Motor.GetCount(not_inversed_motor) < 170
+    ' 170
+    While Motor.GetCount(not_inversed_motor) < 120
       Ultrasonic_slow()
     EndWhile
-    deg = 170
+    ' 170
+    deg = 225
     move_forward()
     
     If white = "False" Then
@@ -1438,22 +1469,24 @@ Sub main
   Motor.StartSync(motors, left_forward * 60, right_forward * 60)
   Program.Delay(1200)
   stop()
-  ' 150, 280
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 220, "True")
-  Motor.Move(left_motor, left_forward * 40, 360, "True")
   
-  'Motor.StartSync(motors, left_forward * 90, right_forward * 95)
-  'Program.Delay(3500)
+  'Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 150, "True")
+  'Motor.Move(left_motor, left_forward * 40, 280, "True")
+  
+  '' 90 95
+  'Motor.StartSync(motors, left_forward * 90, right_forward * 93)
+  'Program.Delay(4500)
   'stop()
-  
+  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 220, "True")
+  Motor.Move(left_motor, left_forward * 20, 360, "True")
   a = 107
   Time.Reset1()
-  While Time.Get1() < 4000
+  While Time.Get1() < 4500
     ultrasonic_superfast()
   EndWhile
   stop()
   
-  Motor.Move(water_motor, -50, 20, "True")
+  'Motor.Move(water_motor, -50, 20, "True")
   
   take_cubes()
   Motor.MoveSync(motors, left_forward * -15, right_forward * -15, 140, "True")
@@ -1531,7 +1564,7 @@ Sub main
     Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 20, "True")
   EndIf
   
-  t = Time.Get1()
+  t = Time.Get9()
   mins = Math.Floor(t / 60000)
   secs = Math.Floor(Math.Remainder(t, 60000) / 1000)
   LCD.Clear()

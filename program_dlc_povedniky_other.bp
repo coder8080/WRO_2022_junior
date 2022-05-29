@@ -518,11 +518,11 @@ Sub main
   EndWhile
   stop_right()
   
-  ' 290, 240
+  ' 290, 240, 105
   ' 260, 230
-  a = 105
+  a = 95
   delay()
-  Motor.Move(left_motor, left_forward * 20, 290, "True")
+  Motor.Move(left_motor, left_forward * 20, 270, "True")
   delay()
   Motor.Move(right_motor, right_forward * 20, 240, "True")
   Motor.ResetCount(not_inversed_motor)
@@ -760,8 +760,8 @@ Sub main
   EndIf
   reset_values()
   ' 140, 140, 120, 120
-  chem_back =  130
-  no_back = 120
+  chem_back =  145
+  no_back = 135
   If take_red_right = "True" Then
     ' Забор химиката справа
     

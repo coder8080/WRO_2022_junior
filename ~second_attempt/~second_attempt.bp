@@ -565,13 +565,19 @@ f_move_backward_0 ()
 f_kick_water_0 ()
 f_move_forward_0 ()
 EndIf
-ElseIf gv_b > 17 Then
+Else
+Sensor.SetMode ( gv_right_sensor , 4 )
+gv_w = Sensor.ReadRawValue ( gv_right_sensor , 0 )
+f_update_display_0 ()
+Sensor.SetMode ( gv_right_sensor , 1 )
+If gv_w > 50 Then
 gv_object = "Chemical"
 f_update_display_0 ()
 gv_chem = "True"
 gv_brown = "True"
 gv_is_chem_on_right = "True"
 f_take_chem_on_right_0 ()
+EndIf
 EndIf
 EndIf
 f_reset_values_0 ()

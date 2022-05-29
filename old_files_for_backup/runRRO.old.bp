@@ -1,4 +1,4 @@
-' Подготовка ко второй попытке
+' Фулл на первой попытке (наше поле, первый старт)
 
 ' Порты
 left_motor = "A"
@@ -670,27 +670,23 @@ Sub main
         kick_water()
         move_forward()
       EndIf
-      'ElseIf b > 12 Or b < 16 Then
-      'Else
-    ElseIf b > 17 Then
-      'Sensor.SetMode(right_sensor, 4)
-      'w = Sensor.ReadRawValue(right_sensor, 0)
-      'update_display()
-      'Sensor.SetMode(right_sensor, 1)
+    ElseIf b > 12 Or b < 16 Then
+      Sensor.SetMode(right_sensor, 4)
+      w = Sensor.ReadRawValue(right_sensor, 0)
+      update_display()
+      Sensor.SetMode(right_sensor, 1)
       
       '  55, 30
-      'If w > 55 Or w < 15 Then
-      ' 50
-      'If w > 50 Then
-      ' Химикат
-      object = "Chemical"
-      update_display()
-      chem = "True"
-      brown = "True"
-      is_chem_on_right = "True"
-      
-      take_chem_on_right()
-      'EndIf
+      If w > 55 Or w < 15 Then
+        ' Химикат
+        object = "Chemical"
+        update_display()
+        chem = "True"
+        brown = "True"
+        is_chem_on_right = "True"
+        
+        take_chem_on_right()
+      EndIf
     EndIf
   EndIf
   reset_values()
@@ -1309,28 +1305,20 @@ Sub main
   b = Sensor.ReadRawValue(left_sensor, 0)
   update_display()
   
-  ' 140, 80
-  If b > 80 Then
-    Sensor.SetMode(left_sensor, 2)
-    delay()
-    g = Sensor.ReadRawValue(left_sensor, 0)
-    Sensor.SetMode(left_sensor, 1)
-    ' 100, 70
-    If g > 80 Then
-      ' Человек
-      object = "Human"
-      update_display()
-      
-      white = "True"
-      white_man = "True"
-    Else
-      ' Огонь
-      white = "True"
-      object = "FIre"
-      update_display()
-      
-      kick_water()
-    EndIf
+  If b > 140 Then
+    ' Человек
+    object = "Human"
+    update_display()
+    
+    white = "True"
+    white_man = "True"
+  ElseIf b > 80 Then
+    ' Огонь
+    white = "True"
+    object = "FIre"
+    update_display()
+    
+    kick_water()
   Else
     ultra = Sensor.ReadRawValue(ultrasonic, 0)
     If ultra < 85 Then
@@ -1349,23 +1337,21 @@ Sub main
   ' Белая зона, второй элемент
   c = 710
   If white = "False" Or yellow = "False" Then
-    ''180
+     ''180
     'deg = 180
     'move_forward()
-    ''491, 500, 503
+     ''491, 500, 503
     'a = 507
     'Motor.ResetCount(not_inversed_motor)
-    ''170
+     ''170
     'While Motor.GetCount(not_inversed_motor) < 120
-    'Ultrasonic_none()
+      'Ultrasonic_none()
     'EndWhile
-    ''170
+     ''170
     'deg = 225
     'move_forward()
     Motor.Move(left_motor, 10 * left_forward, 15, "True")
-    'deg = 180 + 120 + 225
-    ' 525
-    deg = 530
+    deg = 180 + 120 + 225
     move_forward()
     
     If white = "False" Then
@@ -1379,8 +1365,7 @@ Sub main
         delay()
         g = Sensor.ReadRawValue(left_sensor, 0)
         Sensor.SetMode(left_sensor, 1)
-        ' 100
-        If g > 70 Then
+        If g > 100 Then
           ' Человек
           object = "Human"
           update_display()
@@ -1633,8 +1618,8 @@ Sub main
   str = mins + ":" + secs
   LCD.Text(1, 10, 10, 2, str)
   
-  play_music()
-  'Program.Delay(100000000)
+  'play_music()
+  Program.Delay(100000000)
 EndSub
 
 'kick_water()

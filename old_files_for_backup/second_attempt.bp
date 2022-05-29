@@ -671,26 +671,24 @@ Sub main
         move_forward()
       EndIf
       'ElseIf b > 12 Or b < 16 Then
-      'Else
-    ElseIf b > 17 Then
-      'Sensor.SetMode(right_sensor, 4)
-      'w = Sensor.ReadRawValue(right_sensor, 0)
-      'update_display()
-      'Sensor.SetMode(right_sensor, 1)
+    Else
+      Sensor.SetMode(right_sensor, 4)
+      w = Sensor.ReadRawValue(right_sensor, 0)
+      update_display()
+      Sensor.SetMode(right_sensor, 1)
       
       '  55, 30
       'If w > 55 Or w < 15 Then
-      ' 50
-      'If w > 50 Then
-      ' Химикат
-      object = "Chemical"
-      update_display()
-      chem = "True"
-      brown = "True"
-      is_chem_on_right = "True"
-      
-      take_chem_on_right()
-      'EndIf
+      If w > 50 Then
+        ' Химикат
+        object = "Chemical"
+        update_display()
+        chem = "True"
+        brown = "True"
+        is_chem_on_right = "True"
+        
+        take_chem_on_right()
+      EndIf
     EndIf
   EndIf
   reset_values()

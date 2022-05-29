@@ -1,0 +1,9 @@
+gv_a = 0
+gv_a = EV3.BatteryVoltage
+while "True"
+LCD.StopUpdate ()
+LCD.Clear ()
+LCD.Text ( 1 , 0 , 0 , 2 , gv_a )
+LCD.Update ()
+Program.Delay ( 50 )
+EndWhile

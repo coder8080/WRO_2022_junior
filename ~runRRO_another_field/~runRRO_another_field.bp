@@ -71,7 +71,11 @@ gv_is_chem_on_left = ""
 gv_cubes_count = 0
 gv_water_state = 0
 gv_object = ""
+gv_up_water = ""
+gv_1_water = ""
+gv_2_water = ""
 gv_start_from_right = ""
+gv_m = 0
 gv_nowerror = 0
 gv_dif = 0
 gv_derivative = 0
@@ -137,6 +141,9 @@ gv_is_chem_on_left = "False"
 gv_cubes_count = 2
 gv_water_state = 0
 gv_object = ""
+gv_up_water = "True"
+gv_1_water = "True"
+gv_2_water = "True"
 Sensor.SetMode ( gv_line_sensor , 0 )
 Sensor.SetMode ( gv_right_sensor , 1 )
 Sensor.SetMode ( gv_left_sensor , 1 )
@@ -330,17 +337,26 @@ f_move_forward_acceleration_5 ()
 f_stop_0 ()
 EndSub
 Sub f_kick_water_0
-If gv_water_state = 0 Then
+If gv_up_water = "Ture" Then
+Motor.Move ( gv_water_motor , 100 , 20 , "True" )
+Motor.Move ( gv_water_motor , - 100 , 50 , "True" )
+gv_water_state = 1
+gv_up_water = "False"
+ElseIf gv_1_water = "True" Then
+Motor.ResetCount ( gv_water_motor )
+Motor.Start ( gv_water_motor , 30 )
+Program.Delay ( 1000 )
+Motor.Stop ( gv_water_motor , "True" )
+Motor.Move ( gv_water_motor , - 30 , Math.Abs ( Motor.GetCount ( gv_water_motor ) ) , "True" )
+gv_water_state = 2
+gv_1_water = "False"
+Else
+Motor.ResetCount ( gv_water_motor )
 Motor.Start ( gv_water_motor , - 30 )
 Program.Delay ( 1500 )
 Motor.Stop ( gv_water_motor , "True" )
-Motor.Move ( gv_water_motor , 30 , 40 , "True" )
-gv_water_state = 1
-Else
-Motor.Start ( gv_water_motor , 30 )
-Program.Delay ( 2000 )
-Motor.Stop ( gv_water_motor , "False" )
-Motor.Move ( gv_water_motor , - 30 , 40 , "True" )
+Motor.Move ( gv_water_motor , 30 , Math.Abs ( Motor.GetCount ( gv_water_motor ) ) , "True" )
+gv_2_water = "False"
 EndIf
 EndSub
 Sub f_update_display_0
@@ -690,6 +706,28 @@ f_go_backward_0 ()
 EndWhile
 f_stop_0 ()
 EndSub
+Sub f_kick_new_fire_0
+Motor.MoveSync ( gv_motors , gv_left_forward * 20 , gv_right_forward * - 20 , 370 , "True" )
+lv_base_power_5 = 20
+lv_min_power_5 = 10
+lv_deg_5 = 160
+lv_acceleration_5 = 70
+lv_zame_5 = 70
+f_move_forward_acceleration_5 ()
+f_stop_0 ()
+Motor.Start ( gv_water_motor , - 40 )
+Program.Delay ( 1000 )
+Motor.Stop ( gv_water_motor , "True" )
+lv_base_power_6 = 20
+lv_min_power_6 = 10
+lv_deg_6 = 160
+lv_acceleration_6 = 70
+lv_zame_6 = 70
+f_move_backward_acceleration_5 ()
+f_stop_0 ()
+Motor.Move ( gv_water_motor , 40 , 20 , "True" )
+Motor.MoveSync ( gv_motors , gv_left_forward * - 20 , gv_right_forward * 20 , 370 , "True" )
+EndSub
 Sub f_main_0
 gv_start_from_right = "True"
 Time.Reset9 ()
@@ -697,7 +735,7 @@ gv_a = 97
 f_reset_values_0 ()
 If gv_start_from_right = "True" Then
 Motor.StartSync ( gv_motors , gv_left_forward * 100 , gv_right_forward * 90 )
-gv_deg = 100
+gv_deg = 600
 While Motor.GetCount ( gv_not_inversed_motor ) < gv_deg
 EndWhile
 Motor.StartSync ( gv_motors , gv_left_forward * 60 , gv_right_forward * 50 )
@@ -706,21 +744,73 @@ EndWhile
 While Sensor.ReadPercent ( gv_line_sensor ) > 15
 EndWhile
 f_stop_0 ()
-Motor.Move ( gv_right_motor , gv_right_forward * 20 , 460 , "True" )
+lv_motor_7 = gv_right_motor
+lv_forward_7 = gv_right_forward
+lv_base_power_7 = 30
+lv_min_power_7 = 15
+lv_deg_7 = 460
+lv_acceleration_7 = 100
+lv_zame_7 = 100
+f_motor_forward_acceleration_7 ()
+f_stop_0 ()
 Motor.StartSync ( gv_motors , gv_left_forward * - 40 , gv_right_forward * - 40 )
 Program.Delay ( 1000 )
 f_stop_0 ()
-Motor.StartSync ( gv_motors , gv_left_forward * 50 , gv_right_forward * 50 )
+Motor.ResetCount ( gv_not_inversed_motor )
+Motor.StartSync ( gv_motors , gv_left_forward * 40 , gv_right_forward * 40 )
+While Motor.GetCount ( gv_not_inversed_motor ) < 500 Or Sensor.ReadPercent ( gv_line_sensor ) < 23
+EndWhile
+f_stop_0 ()
+Motor.Move ( gv_water_motor , - 20 , 70 , "True" )
+lv_motor_7 = gv_right_motor
+lv_forward_7 = gv_right_forward
+lv_base_power_7 = 30
+lv_min_power_7 = 15
+lv_deg_7 = 510
+lv_acceleration_7 = 150
+lv_zame_7 = 150
+f_motor_forward_acceleration_7 ()
+f_stop_0 ()
+lv_motor_7 = gv_left_motor
+lv_forward_7 = gv_left_forward
+lv_base_power_7 = 20
+lv_min_power_7 = 20
+lv_deg_7 = 140
+lv_acceleration_7 = 0
+lv_zame_7 = 0
+f_motor_forward_acceleration_7 ()
+f_stop_0 ()
+gv_m = Sensor.ReadRawValue ( gv_ultrasonic , 0 )
+While Sensor.ReadPercent ( 1 ) > 4
+lv_power_1 = 30
+lv_u_1 = gv_m
+f_ultrasonic_power_2 ()
+EndWhile
+f_stop_0 ()
+Motor.Move ( gv_water_motor , 20 , 70 , "True" )
+lv_motor_8 = gv_right_motor
+lv_forward_8 = gv_right_forward
+lv_base_power_8 = 30
+lv_min_power_8 = 10
+lv_deg_8 = 365
+lv_acceleration_8 = 100
+lv_zame_8 = 100
+f_motor_backward_acceleration_7 ()
+f_stop_0 ()
+Motor.StartSync ( gv_motors , gv_left_forward * 40 , gv_right_forward * 40 )
 Program.Delay ( 2500 )
 f_stop_0 ()
 Motor.Move ( gv_right_motor , gv_right_forward * - 20 , 250 , "True" )
 Motor.Move ( gv_left_motor , gv_left_forward * 20 , 125 , "True" )
-Program.Delay ( 1000 )
-Motor.StartSync ( gv_motors , gv_left_forward * - 20 , gv_right_forward * - 20 )
+Program.Delay ( 100 )
+Motor.StartSync ( gv_motors , gv_left_forward * 20 , gv_right_forward * 20 )
+While Sensor.ReadPercent ( gv_line_sensor ) < 23
+EndWhile
 While Sensor.ReadPercent ( gv_line_sensor ) > 10
 EndWhile
+f_beep_0 ()
 Motor.ResetCount ( gv_not_inversed_motor )
-While Motor.GetCount ( gv_not_inversed_motor ) < 500
+While Motor.GetCount ( gv_not_inversed_motor ) < 510
 lv_power_1 = 20
 lv_u_1 = gv_a
 f_ultrasonic_power_2 ()
@@ -794,7 +884,6 @@ f_stop_0 ()
 f_reset_values_0 ()
 f_update_display_0 ()
 gv_c = 350
-If gv_brown = "False" Then
 lv_base_power_6 = 20
 lv_min_power_6 = 10
 lv_deg_6 = 90
@@ -844,6 +933,8 @@ gv_brown = "True"
 f_update_display_0 ()
 f_take_chem_on_right_0 ()
 EndIf
+If gv_brown = "False" Then
+f_kick_new_fire_0 ()
 EndIf
 f_reset_values_0 ()
 Motor.ResetCount ( gv_not_inversed_motor )
@@ -1040,6 +1131,11 @@ lv_zame_6 = gv_half
 f_move_backward_acceleration_5 ()
 f_stop_0 ()
 Else
+If gv_red = "False" Then
+Motor.Start ( gv_water_motor , - 50 )
+Program.Delay ( 1000 )
+Motor.Stop ( gv_water_motor , "True" )
+EndIf
 gv_half = Math.Floor ( ( gv_no_back - 30 ) / 2 )
 lv_base_power_6 = 20
 lv_min_power_6 = 10
@@ -1221,7 +1317,6 @@ While Sensor.ReadPercent ( gv_line_sensor ) > 6
 EndWhile
 f_stop_0 ()
 Sensor.SetMode ( gv_line_sensor , 0 )
-If gv_green = "False" Then
 gv_deg = 110
 f_move_backward_0 ()
 f_delay_0 ()
@@ -1258,13 +1353,12 @@ f_take_chem_on_left_accurate_0 ()
 EndIf
 EndIf
 f_update_display_0 ()
+If gv_green = "False" Then
+f_kick_new_fire_0 ()
+EndIf
 f_stop_0 ()
 gv_deg = 170
 f_move_forward_0 ()
-Else
-gv_deg = 60
-f_move_forward_0 ()
-EndIf
 gv_b = Sensor.ReadRawValue ( gv_left_sensor , 0 )
 If gv_b > 70 Then
 Sensor.SetMode ( gv_left_sensor , 2 )
@@ -1302,7 +1396,6 @@ f_ultrasonic_fast_0 ()
 EndWhile
 gv_deg = 105
 f_move_forward_0 ()
-If gv_blue = "False" Then
 Sensor.SetMode ( gv_left_sensor , 1 )
 gv_b = Sensor.ReadRawValue ( gv_left_sensor , 0 )
 f_update_display_0 ()
@@ -1337,6 +1430,8 @@ f_take_chem_on_left_accurate_0 ()
 EndIf
 EndIf
 f_reset_values_0 ()
+If gv_blue = "False" Then
+f_kick_new_fire_0 ()
 EndIf
 f_stop_0 ()
 Sensor.SetMode ( gv_line_sensor , 0 )
@@ -1430,7 +1525,6 @@ gv_yellow_object = "fire"
 ElseIf gv_chem = "False" Then
 gv_yellow_object = "chem"
 ElseIf gv_men_count = 2 And gv_fire_count = 2 And gv_chem = "True" Then
-gv_yellow = "True"
 gv_yellow_object = "none"
 EndIf
 EndIf
@@ -1482,6 +1576,9 @@ EndIf
 EndIf
 f_reset_values_0 ()
 EndIf
+If gv_white = "False" Then
+f_kick_new_fire_0 ()
+EndIf
 If gv_yellow = "False" Then
 gv_yellow_object = "unknown"
 If gv_men_count = 1 Then
@@ -1493,7 +1590,6 @@ gv_yellow_object = "fire"
 ElseIf gv_chem = "False" Then
 gv_yellow_object = "chem"
 ElseIf gv_men_count = 2 And gv_fire_count = 2 And gv_chem = "True" Then
-gv_yellow = "True"
 gv_yellow_object = "none"
 EndIf
 EndIf
@@ -1536,6 +1632,27 @@ f_stop_0 ()
 gv_chem = "True"
 ElseIf gv_yellow_object = "man" Then
 gv_yellow_man = "True"
+ElseIf gv_yellow_object = "none" Then
+Motor.Move ( gv_left_motor , gv_left_forward * 20 , 30 , "True" )
+lv_base_power_5 = 20
+lv_min_power_5 = 10
+lv_deg_5 = 100
+lv_acceleration_5 = 40
+lv_zame_5 = 40
+f_move_forward_acceleration_5 ()
+f_stop_0 ()
+Motor.Start ( gv_water_motor , - 50 )
+Program.Delay ( 1000 )
+Motor.Stop ( gv_water_motor , "True" )
+lv_base_power_6 = 20
+lv_min_power_6 = 10
+lv_deg_6 = 100
+lv_acceleration_6 = 40
+lv_zame_6 = 40
+f_move_backward_acceleration_5 ()
+f_stop_0 ()
+Motor.Move ( gv_left_motor , gv_left_forward * - 20 , 35 , "True" )
+f_stop_0 ()
 EndIf
 gv_yellow = "True"
 EndIf

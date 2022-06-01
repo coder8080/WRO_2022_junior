@@ -924,6 +924,12 @@ Sub kick_new_fire
   Motor.MoveSync(motors, left_forward * -20, right_forward * 20, 370, "True")
 EndSub
 
+Sub drop_cube
+  Motor.Start(water_motor, -50)
+  Program.Delay(1000)
+  Motor.Stop(water_motor, "True")
+EndSub
+
 ' ---- Основная номинация ----
 Sub main
   Sensor.SetMode(line_sensor, 4)
@@ -961,7 +967,8 @@ Sub main
   LCD.Text(1, 0, 0, 2, color)
   Program.Delay(2000)
   If color = "green" Or color = "yellow" Or color = "red" Then
-    rotate_right_acceleration(20, 10, 180, 70, 70)
+    ' 180
+    rotate_right_acceleration(20, 10, 185, 70, 70)
     Time.Reset1()
     reset()
     While Time.Get1() < 4500
@@ -976,13 +983,14 @@ Sub main
     stop()
     Sensor.Wait(line_sensor)
     reset()
-    While Sensor.ReadPercent(line_sensor) > 11
+    While Motor.GetCount(not_inversed_motor) < 110 Or Sensor.ReadPercent(line_sensor) > 11
       go_forward_new(30)
     EndWhile
     stop()
   Else
+    ' 180
     Sensor.SetMode(line_sensor, 0)
-    rotate_left_acceleration(20, 10, 180, 70, 70)
+    rotate_left_acceleration(20, 10, 185, 70, 70)
     stop()
     Motor.StartSync(motors, left_forward * -40, right_forward * -40)
     Program.Delay(4500)
@@ -1032,9 +1040,128 @@ Sub main
   move_forward_acceleration(30, 30, 590, 0, 0)
   stop()
   delay()
+  ' 110
   Motor.Move(grabber_motor, 50, 110, "True")
-  move_backward_acceleration(50, 50, 300, 0, 0)
   stop()
+  Sensor.SetMode(right_sensor, 0)
+  'move_backward_acceleration(50, 50, 300, 0, 0)
+  'stop()
+  reset()
+  While Sensor.ReadPercent(line_sensor) < 23
+    go_backward_new(20)
+  EndWhile
+  While Sensor.ReadPercent(line_sensor) > 10
+    go_backward_new(20)
+  EndWhile
+  stop()
+  Motor.Start(grabber_motor, 50)
+  Program.Delay(2000)
+  Motor.Stop(grabber_motor, "True")
+  move_backward_acceleration(20, 10, 560, 0, 100)
+  stop()
+  motor_backward_acceleration(left_motor, left_forward, 20, 20, 360, 0, 0)
+  stop()
+  Motor.StartSync(motors, left_forward * -30, right_forward * -30)
+  Program.Delay(3000)
+  stop()
+  ' 270
+  move_forward_acceleration(20, 15, 280, 0, 100)
+  after_action()
+  z = Sensor.ReadRawValue(right_sensor, 0)
+  LCD.Clear()
+  LCD.Text(1, 0, 0, 2, z)
+  Program.Delay(1000)
+  If z = 0 Then
+    move_backward_acceleration(20, 20, 60, 0, 0)
+    after_action()
+    motor_backward_acceleration(right_motor, right_forward, 20, 20, 370, 0, 0)
+    after_action()
+    move_forward_acceleration(20, 15, 210, 100, 100)
+    after_action()
+    Motor.Start(water_motor, -50)
+    Program.Delay(1000)
+    Motor.Stop(water_motor, "True")
+    move_backward_acceleration(20, 15, 210, 100, 100)
+    after_action()
+    motor_forward_acceleration(right_motor, right_forward, 20, 20, 370, 0, 0)
+    Motor.StartSync(motors, left_forward * -30, right_forward * -30)
+    Program.Delay(1000)
+    stop()
+  Else
+    move_forward_acceleration(20, 15, 160, 60, 60)
+    after_action()
+    z = Sensor.ReadRawValue(right_sensor, 0)
+    If z = 0 Then
+      motor_forward_acceleration(left_motor, left_forward, 20, 20, 140, 0, 0)
+      after_action()
+      move_forward_acceleration(20, 20, 230, 0, 0)
+      after_action()
+      Motor.Start(water_motor, -50)
+      Program.Delay(1000)
+      Motor.Stop(water_motor, "True")
+      move_backward_acceleration(20, 20, 230, 0, 0)
+      after_action()
+      motor_backward_acceleration(left_motor, left_forward, 20, 20, 140, 0, 0)
+      after_action()
+      Motor.StartSync(motors, left_forward * -30, right_forward * -30)
+      Program.Delay(3000)
+      stop()
+    Else
+      reset()
+      Time.Reset1()
+      While Time.Get1() < 5000
+        go_forward_new(30)
+      Endwhile
+      stop()
+      move_backward_acceleration(20, 20, 60, 0, 0)
+      after_action()
+      motor_backward_acceleration(right_motor, right_forward, 20, 20, 370, 0, 0)
+      after_action()
+      move_forward_acceleration(20, 15, 210, 100, 100)
+      after_action()
+      Motor.Start(water_motor, -50)
+      Program.Delay(1000)
+      Motor.Stop(water_motor, "True")
+      move_backward_acceleration(20, 15, 210, 100, 100)
+      after_action()
+      motor_forward_acceleration(right_motor, right_forward, 20, 20, 370, 0, 0)
+      Motor.StartSync(motors, left_forward * -30, right_forward * -30)
+      Program.Delay(5000)
+      stop()
+    EndIf
+  EndIf
+  stop()
+  If color = "brown" Then
+    Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 30, "True")
+    stop()
+  ElseIf color = "white" Then
+    move_forward_acceleration(20, 20, 600, 0, 0)
+    stop()
+  ElseIf color = "blue" Then
+    reset()
+    Time.Reset1()
+    While Time.Get1() < 5000
+      go_forward_new(30)
+    EndWhile
+    stop()
+    Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 30, "True")
+  ElseIf color = "red" Then
+    motor_forward_acceleration(right_motor, right_forward, 20, 20, 365, 0, 0)
+    after_action()
+    move_forward_acceleration(20, 20, 430, 0, 0)
+    stop()
+  ElseIf color = "yellow" Then
+    motor_forward_acceleration(right_motor, right_forward, 20, 20, 170, 0, 0)
+    after_action()
+    move_forward_acceleration(20, 20, 850, 0, 0)
+    stop()
+  ElseIf color = "green" Then
+    motor_forward_acceleration(right_motor, right_forward, 20, 20, 100, 0, 0)
+    after_action()
+    move_forward_acceleration(20, 20, 1300, 0, 0)
+    stop()
+    EndIf
+  ' 140 230
 EndSub
 
 main()

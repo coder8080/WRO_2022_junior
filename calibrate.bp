@@ -1,0 +1,24 @@
+left_line = 1
+right_line = 2
+
+Sensor.SetMode(left_line, 0)
+Sensor.SetMode(right_line, 0)
+
+l_min = 100
+r_min = 100
+l_max = 0
+r_max = 0
+
+While "True"
+  l = Sensor.ReadPercent(left_line)
+  r = Sensor.ReadPercent(right_line)
+  l_min = Math.Min(l_min, l)
+  r_min = Math.Min(r_min, r)
+  l_max = Math.Max(l_max, l)
+  r_max = Math.Max(r_max, r)
+  LCD.StopUpdate()
+  LCD.Clear()
+  LCD.Text(1, 0, 0, 2, l_min + " " + r_min)
+  LCD.Text(1, 0, 20, 2, l_max + " " + r_max)
+  LCD.Update()
+EndWhile

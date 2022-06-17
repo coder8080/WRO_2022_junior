@@ -1,0 +1,33 @@
+line = 1
+line_max = 40
+line_min = 5
+right_sensor = 3
+
+'right_red_min =
+'right_red_max = 
+'right_green_min = 
+'right_green_max = 
+'right_blue_min = 
+
+
+Sensor.SetMode(line, 0)
+Sensor.SetMode(right_sensor, 5)
+
+While "True"
+  l = Math.floor((Sensor.ReadPercent(@line) - @line_min) / (@line_max - @line_min) * 100)
+  r = 0
+  g = 0
+  b = 0
+  Sensor3.Raw3(r, g, b)
+  right_red = Text.Append(r, "")
+  right_green = Text.Append(g, "")
+  right_blue = Text.Append(b, "")
+  right_sum = Text.Append(r + g + b, "")
+  right_text = right_red + " " + right_green + " " + right_blue + " " + right_sum
+  
+  LCD.StopUpdate()
+  LCD.Clear()
+  LCD.Text(1, 0, 0, 2, l)
+  LCD.Text(1, 0, 40, 1, right_text)
+  LCD.Update()
+EndWhile

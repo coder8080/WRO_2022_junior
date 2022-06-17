@@ -1,1167 +1,397 @@
-' Порты
+left_line = 1
+right_line = 2
+left_sensor = 3
+right_sensor = 4
 left_motor = "A"
 right_motor = "B"
-right_forward = 1
-left_forward = -1
-' Неинвертированный мотор. Нужен, чтобы положительно мерить градусы
-not_inversed_motor = "B"
-grabber_motor = "C"
+not_inverted_motor = "B"
 motors = left_motor + right_motor
+left_forward = -1
+right_forward = 1
+grabber_motor = "C"
 water_motor = "D"
-left_sensor = 2
-right_sensor = 3
-line_sensor = 1
-ultrasonic = 4
+left_max = 49
+left_min = 4
+right_max = 46
+right_min = 4
 
-' Необходимые объявления
-a = 0
-p = 1
-d = 6
-LastError = 0
-integral = 0
-p_u = 1
-d_u = 0
-deg = 0
-b = 0
-w = 0
+last_err = 0
+last_motor_err = 0
 
-' Текущее состояние
-brown_man = "False"
-red_man = "False"
-yellow_man = "False"
-green_man = "False"
-blue_man = "False"
-white_man = "False"
+Sensor.SetMode(left_line, 0)
+Sensor.SetMode(right_line, 0)
+Sensor.SetMode(right_sensor, 4)
 
-men_count = 0
-chem = "False"
-fire_count = 0
-
-is_chem_on_right = "False"
-is_chem_on_left = "False"
-cubes_count = 2
-
-water_state = 0
-
-object = ""
-
-up_water = "True"
-1_water = "True"
-2_water = "True"
-
-' Перевод сенсоров в нужный режим
-Sensor.SetMode(line_sensor, 0)
-Sensor.SetMode(right_sensor, 1)
-Sensor.SetMode(left_sensor, 1)
-Sensor.SetMode(ultrasonic, 0)
-
-' Если низкий уровень заряда, уведомить оператора
 If EV3.BatteryVoltage < 8 Then
-  LCD.Clear()
-  LCD.Text(1, 0, 0, 1, "Low battery")
   beep()
-  delay()
+  Speaker.Wait()
   beep()
 EndIf
 
-' --- Движения с выравниванием ---
-Sub line
-  NowError = 20 - Sensor.ReadPercent(1)
-  dif = LastError - NowError
-  integral = (integral + NowError) / 10
-  derivative = NowError - LastError
-  up = ((NowError * p) + (integral * d))
-  Motor.StartPower("B", 40 - up)
-  Motor.StartPower("A", -40 - up)
-  LastError = NowError
+Sub take_chem
+  Motor.Start(grabber_motor, 100)
+  Program.Delay(1500)
+  Motor.Stop(grabber_motor, "True")
 EndSub
 
-Sub endless_line
-  While "True"
-    line()
-  EndWhile
-EndSub
-
-Sub Ultrasonic_slow
-  NowError = Sensor.ReadRawValue(ultrasonic, 0) - a
-  dif = LastError - NowError
-  integral = (integral + NowError) / 10
-  derivative = NowError - LastError
-  up = ((NowError * p_u) + (integral * d_u))
-  Motor.StartPower(right_motor, (20 + up) * right_forward)
-  Motor.StartPower(left_motor, (20 - up) * left_forward)
-  LastError = NowError
-EndSub
-
-Function Ultrasonic_power(in number power, in number u)
-  v = Sensor.ReadRawValue(@ultrasonic, 0)
-  NowError = v - u
-  dif = @LastError - NowError
-  integral = (@integral + NowError) / 10
-  derivative = NowError - @LastError
-  up = ((NowError * @p_u) + (integral * @d_u))
-  Motor.StartPower(@right_motor, (power + up) * @right_forward)
-  Motor.StartPower(@left_motor, (power - up) * @left_forward)
-  LastError = NowError
+Function movement_init(in number power)
+  MotorA.StartPower(power * @left_forward)
+  MotorB.StartPower(power * @right_forward)
 EndFunction
 
-Sub Ultrasonic_fast
-  NowError = Sensor.ReadRawValue(ultrasonic, 0) - a
-  dif = LastError - NowError
-  integral = (integral + NowError) / 10
-  derivative = NowError - LastError
-  up = ((NowError * p_u) + (integral * d_u))
-  Motor.StartPower(right_motor, (30 + up) * right_forward)
-  Motor.StartPower(left_motor, (30 - up) * left_forward)
-  LastError = NowError
-EndSub
+Function line(in number l, in number r)
+  If l = -100 Then
+    l = (Sensor.ReadPercent(@left_line) - @left_min) / (@left_max - @left_min) * 100
+  EndIf
+  If r = -100 Then
+    r = (Sensor.ReadPercent(@right_line) - @right_min) / (@right_max - @right_min) * 100
+  EndIf
+  err = r - l
+  diff = err - @last_err
+  delta = err * 0.3 + diff * 1
+  left_power = 80 - delta
+  right_power = 80 + delta
+  MotorA.SetPower(left_power * @left_forward)
+  MotorB.SetPower(right_power * @right_forward)
+  @last_err = err
+EndFunction
 
-Sub ultrasonic_superfast
-  NowError = Sensor.ReadRawValue(ultrasonic, 0) - a
-  dif = LastError - NowError
-  integral = (integral + NowError) / 10
-  derivative = NowError - LastError
-  up = ((NowError * p_u) + (integral * d_u))
-  Motor.StartPower(right_motor, (80 + up) * right_forward)
-  Motor.StartPower(left_motor, (80 - up) * left_forward)
-  LastError = NowError
-EndSub
-
-' --- Базовые действия ---
-
-Sub stop
-  Motor.Stop(motors, "True")
-EndSub
-
-Sub stop_right
-  Motor.Stop(right_motor, "True")
-EndSub
-
-Sub stop_left
-  Motor.Stop(left_motor, "True")
-EndSub
-
-Sub delay
-  Program.Delay(300)
-EndSub
-
-Function after_action()
-  stop()
-  Program.Delay(300)
+Function endless_line()
+  'Motor.StartPower("AB", 80)
+  MotorA.StartPower(80 * @left_forward)
+  MotorB.StartPower(80 * @right_forward)
+  While "True"
+    line(-100, -100)
+  EndWhile
 EndFunction
 
 Sub beep
   Speaker.Tone(100, 500, 200)
 EndSub
 
-' --- Заборы химиката ---
-
-Sub take_chem_on_left
-  is_chem_on_left = "True"
-  move_forward_acceleration(20, 10, 280, 100, 100)
-  after_action()
-  motor_backward_acceleration(left_motor, left_forward, 20, 10, 370, 100, 100)
-  after_action()
-  Motor.Move(grabber_motor, 100, 165, "True")
-  move_forward_acceleration(20, 10, 70, 0, 70)
-  after_action()
-  Motor.Move(grabber_motor, 100, 100, "True")
-  after_action()
-  move_backward_acceleration(20, 10, 90, 0, 70)
-  after_action()
-  motor_forward_acceleration(left_motor, left_forward, 20, 10, 370, 100, 100)
-  after_action()
-  move_backward_acceleration(20, 10, 280, 100, 100)
-  after_action()
-EndSub
-
-Sub take_chem_on_left_accurate
-  is_chem_on_left = "True"
-  move_backward_acceleration(20, 10, 170, 70, 70)
-  stop()
-  Motor.Move(grabber_motor, 50, 165, "True")
-  motor_forward_acceleration(right_motor, right_forward, 20, 10, 160, 70, 70)
-  stop()
-  Motor.Move(grabber_motor, 50, 100, "True")
-  delay()
-  motor_backward_acceleration(right_motor, right_forward, 20, 10, 160, 70, 70)
-  after_action()
-  move_forward_acceleration(20, 10, 170, 70, 70)
-  stop()
-EndSub
-
-Sub take_chem_on_right
-  is_chem_on_right = "True"
-  move_backward_acceleration(20, 10, 170, 70, 70)
-  stop()
-  Motor.Move(grabber_motor, 50, 165, "True")
-  motor_forward_acceleration(left_motor, left_forward, 20, 10, 160, 70, 70)
-  stop()
-  Motor.Move(grabber_motor, 50, 100, "True")
-  delay()
-  motor_backward_acceleration(left_motor, left_forward, 20, 10, 160, 70, 70)
-  after_action()
-  move_forward_acceleration(20, 10, 170, 70, 70)
-  stop()
-EndSub
-
-' Выброс воды
-Sub kick_water
-  If water_state = 0 Then
-    Motor.Start(water_motor, -30)
-    Program.Delay(1500)
-    Motor.Stop(water_motor, "True")
-    Motor.Move(water_motor, 30, 40, "True")
-    water_state = 1
-  Else
-    Motor.Start(water_motor, 30)
-    Program.Delay(2000)
-    Motor.Stop(water_motor, "False")
-    Motor.Move(water_motor, -30, 40, "True")
-  EndIf
-  'If up_water = "True" Then
-  'If chem = "False" Then
-  'Motor.Move(grabber_motor, 50, 50, "True")
-  'EndIf
-  'Motor.Move(water_motor, 100, 20, "True")
-  'Motor.Move(water_motor, -100, 50, "True")
-  'If chem = "False" Then
-  'Motor.Move(grabber_motor, -50, 50, "True")
-  'EndIf
-  'water_state = 1
-  'up_water = "False"
-  'ElseIf 1_water = "True" Then
-  'Motor.ResetCount(water_motor)
-  'Motor.Start(water_motor, 30)
-  'Program.Delay(1000)
-  'Motor.Stop(water_motor, "True")
-  'Motor.Move(water_motor, -30, Math.Abs(Motor.GetCount(water_motor)), "True")
-  'water_state = 2
-  '1_water = "False"
-  'Else
-  'Motor.ResetCount(water_motor)
-  'Motor.Start(water_motor, -30)
-  'Program.Delay(1500)
-  'Motor.Stop(water_motor, "True")
-  'Motor.Move(water_motor, 30, Math.Abs(Motor.GetCount(water_motor)), "True")
-  ''Motor.Move(water_motor, 30, 40, "True")
-  '2_water = "False"
-  'EndIf
-EndSub
-
-' Движеня около чёрной линии
-Sub turn_right_by_sensor
-  Motor.ResetCount(left_motor)
-  For i = 1 To 20
-    Motor.StartSync(motors, left_forward * i, right_forward * i * -1)
-    Program.Delay(10)
-  EndFor
-  Motor.MoveSync(motors, left_forward * 20, right_forward * -20, 100 - (Motor.GetCount(left_motor) * left_forward), "True")
-  Motor.StartSync(motors, left_forward * 20, right_forward * i * -20)
-  While Sensor.ReadPercent(line_sensor) > 10
-  EndWhile
-  stop()
-  Motor.MoveSync(motors, left_forward * 20, right_forward * -20, 15, "True")
-EndSub
-
-Sub line_to_crossroad
-  While Sensor.ReadPercent(line_sensor) > 10
-    line()
-  EndWhile
-  stop()
-EndSub
-
-' --- Работа с экраном
-
-Sub update_display
-  LCD.StopUpdate()
-  LCD.Clear()
-  LCD.Text(1, 10, 10, 2, object)
-  LCD.Text(1, 10, 50, 2, "Red: " + b)
-  LCD.Text(1, 10, 75, 2, "White: " + w)
-  LCD.Update()
-EndSub
-
-Sub reset_values
-  object = "None"
-  b = 0
-  w = 0
-EndSub
-
-' --- Развозы ---
-
-Sub close_cubes
-  Motor.Move(water_motor, -10, 70, "True")
-EndSub
-
-Sub open_cubes
-  Motor.Move(water_motor, 10, 70, "True")
-EndSub
-
-Function ultrasonic_zamed(in number u, in number base_power, in number min_power, in number degrees, in number zamed_degrees)
-  normal_degrees = degrees - zamed_degrees
-  Motor.ResetCount(@not_inversed_motor)
-  While Motor.GetCount(@not_inversed_motor) < normal_degrees
-    Ultrasonic_power(base_power, u)
-  EndWhile
-  Motor.ResetCount(@not_inversed_motor)
-  c = Motor.GetCount(@not_inversed_motor)
-  While c < zamed_degrees
-    minus = Motor.GetCount(@not_inversed_motor) / zamed_degrees * base_power
-    power = base_power - minus
-    If power < min_power Then
-      power = min_power
-    EndIf
-    Ultrasonic_power(power, u)
-    c = Motor.GetCount(@not_inversed_motor)
-  EndWhile
-  stop()
+Function delay(in number time)
+  Program.Delay(time)
 EndFunction
-
-Sub take_cubes
-  Motor.Start(water_motor, 30)
-  Program.Delay(500)
-  Motor.Stop(water_motor, "True")
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 150, "True")
-  Motor.Move(right_motor, -20, 360, "True")
-  Motor.StartSync(motors, left_forward * -20, right_forward * -20)
-  Program.Delay(700)
-  stop()
-  ultrasonic_zamed(229, 50, 20, 930, 200)
-  Motor.Move(water_motor, -50, 20, "True")
-  close_cubes()
-EndSub
-
-Sub take_cubes_inversed
-  Motor.Start(water_motor, 30)
-  Program.Delay(500)
-  Motor.Stop(water_motor, "True")
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 140, "True")
-  Motor.Start(left_motor, -100 * left_forward)
-  Program.Delay(3000)
-  stop()
-  Motor.StartSync(motors, left_forward * -20, right_forward * -20)
-  Program.Delay(1000)
-  stop()
-  Motor.ResetCount(not_inversed_motor)
-  move_forward_acceleration(20, 20, 930, 0, 200)
-  stop()
-  Motor.Move(water_motor, -50, 20, "True")
-  close_cubes()
-EndSub
-
-Sub take_long
-  Motor.Move(right_motor, right_forward * 20, 360, "True")
-  Motor.StartSync(motors, left_forward * 20, right_forward * 20)
-  Program.Delay(1000)
-  stop()
-  open_cubes()
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 60, "True")
-  If cubes_count = 2 Then
-    close_cubes()
-  EndIf
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 160 - 60, "True")
-  Motor.Move(right_motor, right_forward * -20, 360, "True")
-  cubes_count = 1
-EndSub
-
-Sub take_long_inversed
-  Motor.Move(left_motor, left_forward * 20, 360, "True")
-  Motor.StartSync(motors, left_forward * 20, right_forward * 20)
-  Program.Delay(1000)
-  stop()
-  open_cubes()
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 60, "True")
-  If cubes_count = 2 Then
-    close_cubes()
-  EndIf
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 155 - 60, "True")
-  Motor.Move(left_motor, left_forward * -20, 365, "True")
-  cubes_count = 1
-EndSub
-
-Sub take_near
-  Motor.Move(right_motor, -20 * right_forward, 250, "True")
-  Motor.Move(left_motor, -20 * left_forward, 250, "True")
-  delay()
-  Motor.MoveSync(motors, 20 * left_forward, 20 * right_forward, 230, "True")
-  open_cubes()
-  Motor.MoveSync(motors, -20 * left_forward, -20 * right_forward, 52, "True")
-  If cubes_count = 2 Then
-    close_cubes()
-  EndIf
-  Motor.MoveSync(motors, -20 * left_forward, -20 * right_forward, 230 - 52, "True")
-  Motor.Move(left_motor, left_forward * -20, 250, "True")
-  Motor.Move(right_motor, right_forward * -20, 250, "True")
-  delay()
-  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 200, "True")
-  cubes_count = 1
-EndSub
-
-Sub take_near_inversed
-  Motor.Move(left_motor, -20 * left_forward, 250, "True")
-  Motor.Move(right_motor, -20 * right_forward, 250, "True")
-  delay()
-  Motor.MoveSync(motors, 20 * left_forward, 20 * right_forward, 230, "True")
-  open_cubes()
-  Motor.MoveSync(motors, -20 * left_forward, -20 * right_forward, 52, "True")
-  If cubes_count = 2 Then
-    close_cubes()
-  EndIf
-  Motor.MoveSync(motors, -20 * left_forward, -20 * right_forward, 230 - 52, "True")
-  Motor.Move(right_motor, right_forward * -20, 250, "True")
-  Motor.Move(left_motor, left_forward * -20, 250, "True")
-  delay()
-  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 200, "True")
-  cubes_count = 1
-EndSub
-
-Sub take_both
-  Motor.Move(right_motor, right_forward * 20, 360, "True")
-  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 90, "True")
-  open_cubes()
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 52, "True")
-  close_cubes()
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 180 - 52, "True")
-  Motor.Move(left_motor, left_forward * 20, 360, "True")
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 240, "True")
-  open_cubes()
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 50, "True")
-  Motor.Move(left_motor, left_forward * -20, 280, "True")
-  Motor.Move(right_motor, right_forward * -20, 280, "True")
-  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 60, "True")
-  cubes_count = 0
-EndSub
-
-Sub take_both_inversed
-  Motor.Move(left_motor, left_forward * 20, 360, "True")
-  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 90, "True")
-  open_cubes()
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 52, "True")
-  close_cubes()
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 180 - 52, "True")
-  Motor.Move(right_motor, right_forward * 20, 360, "True")
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 240, "True")
-  open_cubes()
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 50, "True")
-  Motor.Move(right_motor, right_forward * -20, 280, "True")
-  Motor.Move(left_motor, left_forward * -20, 280, "True")
-  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 60, "True")
-  cubes_count = 0
-EndSub
-
-Sub take_near_double
-  Motor.Move(right_motor, right_forward * -20, 250, "True")
-  Motor.Move(left_motor, left_forward * -20, 250, "True")
-  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 200, "True")
-  open_cubes()
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 52, "True")
-  close_cubes()
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 210 - 52, "True")
-  open_cubes()
-EndSub
-
-Sub take_near_double_inversed
-  Motor.Move(left_motor, left_forward * -20, 250, "True")
-  Motor.Move(right_motor, right_forward * -20, 250, "True")
-  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 200, "True")
-  open_cubes()
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 52, "True")
-  close_cubes()
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 210 - 52, "True")
-  open_cubes()
-EndSub
-
-Sub take_near_double_long
-  Motor.Move(right_motor, right_forward * -20, 250, "True")
-  Motor.Move(left_motor, left_forward * -20, 250, "True")
-  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 200, "True")
-  open_cubes()
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 52, "True")
-  close_cubes()
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 390 - 52, "True")
-  open_cubes()
-EndSub
-
-Sub take_near_double_long_inversed
-  Motor.Move(left_motor, left_forward * -20, 250, "True")
-  Motor.Move(right_motor, right_forward * -20, 250, "True")
-  Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 200, "True")
-  open_cubes()
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 52, "True")
-  close_cubes()
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 390 - 52, "True")
-  open_cubes()
-EndSub
-
-Sub finish_after_near
-  Motor.StartSync(motors, left_forward * -30, right_forward * -30)
-  Program.Delay(1500)
-  stop()
-  Motor.Move(left_motor, left_forward * 20, 220, "True")
-  Motor.Move(right_motor, right_forward * -20, 150, "True")
-  Motor.StartSync(motors, left_forward * -20, right_forward * -20)
-  Program.Delay(1500)
-  stop()
-EndSub
-
-Sub finish_after_near_inversed
-  Motor.StartSync(motors, left_forward * -30, right_forward * -30)
-  Program.Delay(1500)
-  stop()
-  Motor.Move(right_motor, right_forward * 20, 220, "True")
-  Motor.Move(left_motor, left_forward * -20, 150, "True")
-  Motor.StartSync(motors, left_forward * -20, right_forward * -20)
-  Program.Delay(3000)
-  stop()
-EndSub
-
-Sub takes_inversed
-  take_cubes_inversed()
-  
-  Motor.MoveSync(motors, left_forward * -15, right_forward * -15, 140, "True")
-  
-  If green_man = "True" And yellow_man = "True" Then
-    take_near_double_inversed()
-    finish_after_near_inversed()
-  ElseIf yellow_man = "True" And red_man = "True" Then
-    Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 180, "True")
-    take_near_double_inversed()
-    finish_after_near_inversed()
-  ElseIf red_man = "True" And green_man = "True" Then
-    take_near_double_long_inversed()
-    finish_after_near_inversed()
-  Else
-    If green_man = "True" And blue_man = "True" Then
-      take_both_inversed()
-    ElseIf green_man = "True" Then
-      take_near_inversed()
-    ElseIf blue_man = "True" Then
-      take_long_inversed()
-      Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 210, "True")
-    Else
-      Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 210, "True")
-    EndIf
-    
-    If yellow_man = "True" And white_man = "True" Then
-      take_both_inversed()
-    ElseIf yellow_man = "True" Then
-      take_near_inversed()
-    ElseIf white_man = "True" Then
-      take_long_inversed()
-      Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 210, "True")
-    Else
-      Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 210, "True")
-    EndIf
-    
-    If red_man = "True" And brown_man = "True" Then
-      take_both_inversed()
-    ElseIf red_man = "True" Then
-      take_near_inversed()
-    ElseIf brown_man = "True" Then
-      take_long_inversed()
-      Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 210, "True")
-    Else
-      Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 210, "True")
-    EndIf
-    
-    finish_after_near_inversed()
-  EndIf
-EndSub
-
-Sub takes_normal
-  take_cubes()
-  Motor.MoveSync(motors, left_forward * -15, right_forward * -15, 140, "True")
-  
-  If red_man = "True" And yellow_man = "True" Then
-    take_near_double()
-    finish_after_near()
-  ElseIf yellow_man = "True" And green_man = "True" Then
-    Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 180, "True")
-    take_near_double()
-    finish_after_near()
-  ElseIf red_man = "True" And green_man = "True" Then
-    take_near_double_long()
-    finish_after_near()
-  Else
-    If red_man = "True" And brown_man = "True" Then
-      take_both()
-    ElseIf red_man = "True" Then
-      take_near()
-    ElseIf brown_man = "True" Then
-      take_long()
-      Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 210, "True")
-    Else
-      Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 210, "True")
-    EndIf
-    
-    If yellow_man = "True" And white_man = "True" Then
-      take_both()
-    ElseIf yellow_man = "True" Then
-      take_near()
-    ElseIf white_man = "True" Then
-      take_long()
-      Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 210, "True")
-    Else
-      Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 210, "True")
-    EndIf
-    
-    If green_man = "True" And blue_man = "True" Then
-      take_both()
-    ElseIf green_man = "True" Then
-      take_near()
-    ElseIf blue_man = "True" Then
-      take_long()
-      Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 210, "True")
-    Else
-      Motor.MoveSync(motors, -15 * left_forward, -15 * right_forward, 210, "True")
-    EndIf
-    
-    finish_after_near()
-  EndIf
-EndSub
-
-' --- Езда с выравнием по энкодерам моторов (deprecated)---
-Sub go_forward
-  r_c = Motor.GetCount(right_motor) * right_forward
-  l_c = Motor.GetCount(left_motor) * left_forward
-  diff = (r_c - l_c) * 1
-  r_p = (25 - diff) * right_forward
-  l_p = (25 + diff) * left_forward
-  Motor.StartPower(right_motor, r_p)
-  Motor.StartPower(left_motor, l_p)
-EndSub
-
-Function go_forward_new(in number power)
-  r_c = Motor.GetCount(@right_motor) * @right_forward
-  l_c = Motor.GetCount(@left_motor) * @left_forward
-  diff = (r_c - l_c) * 1
-  r_p = (power - diff) * @right_forward
-  l_p = (power + diff) * @left_forward
-  Motor.StartPower(@right_motor, r_p)
-  Motor.StartPower(@left_motor, l_p)
-EndFunction
-
-Sub go_backward
-  r_c = Motor.GetCount(right_motor) * right_forward
-  l_c = Motor.GetCount(left_motor) * left_forward
-  ' 1
-  diff = (r_c - l_c) * 0.5
-  r_p = (-25 - diff) * right_forward
-  l_p = (-25 + diff) * left_forward
-  Motor.StartPower(right_motor, r_p)
-  Motor.StartPower(left_motor, l_p)
-EndSub
-
-Function go_backward_new(in number power)
-  r_c = Motor.GetCount(@right_motor) * @right_forward
-  l_c = Motor.GetCount(@left_motor) * @left_forward
-  ' 1
-  diff = (r_c - l_c) * 0.5
-  r_p = ((-1 * power) - diff) * @right_forward
-  l_p = ((-1 * power) + diff) * @left_forward
-  Motor.StartPower(@right_motor, r_p)
-  Motor.StartPower(@left_motor, l_p)
-EndFunction
-
-Sub move_forward
-  Motor.ResetCount(left_motor)
-  Motor.ResetCount(right_motor)
-  While Motor.GetCount(not_inversed_motor) < deg
-    go_forward()
-  EndWhile
-  stop()
-EndSub
-
-Sub move_backward
-  Motor.ResetCount(left_motor)
-  Motor.ResetCount(right_motor)
-  While Motor.GetCount(not_inversed_motor) > (-1 * deg)
-    go_backward()
-  EndWhile
-  stop()
-EndSub
-
-' Воспроизведение музыки
-Sub play_music
-  n = 1
-  While "True"
-    filename = "WRO_2022/files/bad_piggies_" + n
-    Speaker.Play(100, filename)
-    While Speaker.IsBusy()
-    EndWhile
-    n = n + 1
-    If n = 23 Then
-      n = 1
-      Program.Delay(1000)
-    EndIf
-  EndWhile
-EndSub
 
 Function reset()
-  Motor.ResetCount(@right_motor)
-  Motor.ResetCount(@left_motor)
+  MotorA.ResetCount()
+  MotorB.ResetCount()
 EndFunction
 
-' Движение с синхронизацией моторов и плавным разгоном
-Function move_forward_acceleration(in number base_power, in number min_power, in number deg, in number acceleration, in number zame)
-  normal_degrees = deg - acceleration - zame
+Function stop()
+  'Motor.Stop(@motors, "True")
+  MotorAB.OffAndBrake()
+EndFunction
+
+Function speedup(in number power, in number deg)
+  movement_init(10)
   reset()
-  c = Motor.GetCount(@not_inversed_motor)
-  While c < acceleration
-    p = (c / acceleration)
-    power = p * (base_power - min_power) + min_power
-    delta = (Motor.GetCount(@left_motor) * @left_forward - Motor.GetCount(@right_motor) * @right_forward) * p
+  l = MotorA.GetTacho() * @left_forward
+  While l < deg
+    p = l / deg
+    power = (power - 10) * p + 10
+    l = MotorA.GetTacho() * @left_forward
+    r = MotorB.GetTacho() * @right_forward
+    delta = (l - r) * p
     left_power = power - delta
     right_power = power + delta
-    Motor.StartSync(@motors, @left_forward * left_power, @right_forward * right_power)
-    c = Motor.GetCount(@not_inversed_motor)
+    MotorA.SetPower(left_power * @left_forward)
+    MotorB.SetPower(right_power * @right_forward)
   EndWhile
+EndFunction
+
+Function speedup_backward(in number power, in number deg)
+  movement_init(-10)
   reset()
-  c = 0
-  While c < normal_degrees
-    delta = (Motor.GetCount(@left_motor) * @left_forward - Motor.GetCount(@right_motor) * @right_forward) * 1
-    left_power = base_power - delta
-    right_power = base_power + delta
-    Motor.StartSync(@motors, @left_forward * left_power, @right_forward * right_power)
-    c = Motor.GetCount(@not_inversed_motor)
+  l = 0
+  While l < deg
+    p = l / deg
+    power = (power - 10) * p + 10
+    l = MotorA.GetTacho() * @left_forward * -1
+    r = MotorB.GetTacho() * @right_forward * -1
+    delta = (l - r) * p
+    left_power = power - delta
+    right_power = power + delta
+    MotorA.SetPower(left_power * @left_forward * -1)
+    MotorB.SetPower(right_power * @right_forward * -1)
   EndWhile
+EndFunction
+
+Function sync()
+  l = MotorA.GetTacho() * @left_forward
+  r = MotorB.GetTacho() * @right_forward
+  err = l - r
+  diff = err - @last_err
+  delta = err * 1 + diff * 0
+  left_power = 80 - delta
+  right_power = 80 + delta
+  MotorA.SetPower(left_power * @left_forward)
+  MotorB.SetSpeed(right_power * @right_forward)
+  @last_err = err
+EndFunction
+
+Function forward_deg(in number deg)
+  movement_init(80)
   reset()
-  c = 0
-  While c < zame
-    p = c / zame
+  l = MotorA.GetTacho() * @left_forward
+  While l < deg
+    sync()
+    l = MotorA.GetTacho() * @left_forward
+  EndWhile
+EndFunction
+
+Function move_motor_forward(in string motor, in number forward, in number deg, in number max_power, in string acceleration, in string zame, in string to_stop)
+  normal_deg = deg
+  If acceleration = "True" Then
+    normal_deg = normal_deg - 120
+  EndIf
+  If zame = "True" Then
+    normal_deg = normal_deg - 120
+  EndIf
+  If acceleration = "True" Then
+    Motor.ResetCount(motor)
+    m = 0
+    While m < 120
+      p = m / 120
+      power = (max_power - 10) * p + 10
+      Motor.Start(motor, power * forward)
+      m = Motor.GetCount(motor) * forward
+      Program.Delay(10)
+    EndWhile
+  EndIf
+  Motor.Move(motor, max_power * forward, normal_deg, "False")
+  If zame = "True" Then
+    Motor.ResetCount(motor)
+    m = 0
+    While m < 120
+      p = 1 - (m / 120)
+      power = (max_power - 10) * p + 10
+      Motor.Start(motor, power * forward)
+      m = Motor.GetCount(motor) * forward
+      Program.Delay(10)
+    EndWhile
+  EndIf
+  If to_stop = "True" Then
+    Motor.Stop(motor, "True")
+  EndIf
+EndFunction
+
+Function move_motor_backward(in string motor, in number forward, in number deg, in number max_power, in string acceleration, in string zame, in string to_stop)
+  Motor.Start(motor, -10 * forward)
+  normal_deg = deg
+  If acceleration = "True" Then
+    normal_deg = normal_deg - 120
+  EndIf
+  If zame = "True" Then
+    normal_deg = normal_deg - 120
+  EndIf
+  If acceleration = "True" Then
+    Motor.ResetCount(motor)
+    m = 0
+    While m < 120
+      p = m / 120
+      power = (max_power - 10) * p + 10
+      Motor.Start(motor, power * -1 * forward)
+      m = Motor.GetCount(motor) * -1 * forward
+      If m < 0 Then
+        m = 0
+      EndIf
+      Program.Delay(10)
+    EndWhile
+  EndIf
+  Motor.Move(motor, max_power * -1 * forward, normal_deg, "False")
+  If zame = "True" Then
+    Motor.ResetCount(motor)
+    m = 0
+    While m < 120
+      p = 1 - (m / 120)
+      power = (max_power - 10) * p + 10
+      Motor.Start(motor, power * -1 * forward)
+      m = Motor.GetCount(motor) * -1 * forward
+      Program.Delay(10)
+    EndWhile
+  EndIf
+  If to_stop = "True" Then
+    Motor.Stop(motor, "True")
+  EndIf
+EndFunction
+
+Function zame(in number base_power, in number min_power, in number deg)
+  movement_init(base_power)
+  reset()
+  l = MotorA.GetTacho() * @left_forward
+  While l < deg
+    p = l / deg
+    l = MotorA.GetTacho() * @left_forward
+    r = MotorB.GetTacho() * @right_forward
+    delta = (l - r) * (1 - p)
     power = (base_power - min_power) * (1 - p) + min_power
-    delta = (Motor.GetCount(@left_motor) * @left_forward - Motor.GetCount(@right_motor) * @right_forward) * (1 - p)
     left_power = power - delta
     right_power = power + delta
-    Motor.StartSync(@motors, @left_forward * left_power, @right_forward * right_power)
-    c = Motor.GetCount(@not_inversed_motor)
-  EndWhile
-EndFunction
-
-Function rotate_right_acceleration(in number base_power, in number min_power, in number deg, in number acceleration, in number zame)
-  reset()
-  normal_deg = deg - acceleration - zame
-  c = 0
-  While c < acceleration
-    p = c / acceleration
-    power = p * (base_power - min_power) + min_power
-    r = Motor.GetCount(@right_motor) * @right_forward * -1
-    delta = (c - r) * p
-    left_power = power - delta
-    right_power = power + delta
-    Motor.StartSync(@motors, @left_forward * left_power, @right_forward * right_power * -1)
-    Program.Delay(10)
-    c = Motor.GetCount(@left_motor) * @left_forward
-  EndWhile
-  reset()
-  c = 0
-  While c < normal_deg
-    c = Motor.GetCount(@left_motor) * @left_forward
-    r = Motor.GetCount(@right_motor) * @right_forward * -1
-    delta = (c - r) * 1
-    left_power = base_power - delta
-    right_power = base_power + delta
-    Motor.StartSync(@motors, @left_forward * left_power, @right_forward * right_power * -1)
-  EndWhile
-  reset()
-  c = 0
-  While c < zame
-    r = Motor.GetCount(@right_motor) * @right_forward * -1
-    p = c / zame
-    delta = (c - r) * (1 - p)
-    power = (1 - p) * (base_power - min_power) + min_power
-    left_power = power - delta
-    right_power = power + delta
-    Motor.StartSync(@motors, @left_forward * left_power, @right_forward * right_power * -1)
-    Program.Delay(10)
-    c = Motor.GetCount(@left_motor) * @left_forward
-  EndWhile
-  stop()
-EndFunction
-
-Function rotate_left_acceleration(in number base_power, in number min_power, in number deg, in number acceleration, in number zame)
-  reset()
-  normal_deg = deg - acceleration - zame
-  r = 0
-  While r < acceleration
-    p = r / acceleration
-    power = p * (base_power - min_power) + min_power
-    l = Motor.GetCount(@left_motor) * @left_forward * -1
-    delta = (r - l) * p
-    right_power = power - delta
-    left_power = power + delta
-    Motor.StartSync(@motors, @left_forward * left_power * -1, @right_forward * right_power)
-    Program.Delay(10)
-    r = Motor.GetCount(@right_motor) * @right_forward
-  EndWhile
-  reset()
-  r = 0
-  While r < normal_deg
-    l = Motor.GetCount(@left_motor) * @left_forward * -1
-    delta = (r - l) * 1
-    right_power = base_power - delta
-    left_power = base_power + delta
-    Motor.StartSync(@motors, @left_forward * left_power * -1, @right_forward * right_power)
-    r = Motor.GetCount(@right_motor) * @right_forward
-  EndWhile
-  reset()
-  r = 0
-  While r < zame
-    l = Motor.GetCount(@left_motor) * @left_forward * -1
-    p = r / zame
-    delta = (r - l) * (1 - p)
-    power = (1 - p) * (base_power - min_power) + min_power
-    right_power = power - delta
-    left_power = power + delta
-    Motor.StartSync(@motors, @left_forward * left_power * -1, @right_forward * right_power)
-    Program.Delay(10)
-    r = Motor.GetCount(@right_motor) * @right_forward
-  EndWhile
-  stop()
-EndFunction
-
-Function move_backward_acceleration(in number base_power, in number min_power, in number deg, in number acceleration, in number zame)
-  normal_degrees = deg - acceleration - zame
-  reset()
-  c = 0
-  While c < acceleration
-    p = c / acceleration
-    power = p * (base_power - min_power) + min_power
-    delta = (Motor.GetCount(@left_motor) * @left_forward - Motor.GetCount(@right_motor) * @right_forward) * p * -1
-    left_power = power - delta
-    right_power = power + delta
-    Motor.StartSync(@motors, @left_forward * left_power * -1, @right_forward * right_power * -1)
-    c = Motor.GetCount(@not_inversed_motor) * -1
-  EndWhile
-  reset()
-  c = 0
-  While c < normal_degrees
-    delta = (Motor.GetCount(@left_motor) * @left_forward - Motor.GetCount(@right_motor) * @right_forward) * -1
-    left_power = base_power - delta
-    right_power = base_power + delta
-    Motor.StartSync(@motors, @left_forward * left_power * -1, @right_forward * right_power * -1)
-    c = Motor.GetCount(@not_inversed_motor) * -1
-  EndWhile
-  reset()
-  c = 0
-  While c < zame
-    p = c / zame
-    power = (base_power - min_power) * (1 - p) + min_power
-    delta = (Motor.GetCount(@left_motor) * @left_forward - Motor.GetCount(@right_motor) * @right_forward) * (1 - p) * -1
-    left_power = power - delta
-    right_power = power + delta
-    Motor.StartSync(@motors, @left_forward * left_power * -1, @right_forward * right_power * -1)
-    c = Motor.GetCount(@not_inversed_motor) * -1
-  EndWhile
-EndFunction
-
-Function motor_forward_acceleration(in string motor, in number forward, in number base_power, in number min_power, in number deg, in number acceleration, in number zame)
-  normal_deg = deg - acceleration - zame
-  Motor.ResetCount(motor)
-  c = 0
-  While c < acceleration
-    p = c / acceleration
-    power = (base_power - min_power) * p + min_power
-    power = Math.Floor(power)  * forward
-    LCD.StopUpdate()
-    LCD.Clear()
-    LCD.Text(1, 0, 0, 2, power)
-    LCD.Update()
-    Motor.Start(motor, power)
-    c = Motor.GetCount(motor) * forward
-    Program.Delay(10)
-  EndWhile
-  Motor.Move(motor, base_power * forward, normal_deg, "False")
-  Motor.ResetCount(motor)
-  c = 0
-  While c < zame
-    p = c / zame
-    power = ((base_power - min_power) * (1 - p)) + min_power
-    LCD.StopUpdate()
-    LCD.Clear()
-    LCD.Text(1, 0, 0, 2, power)
-    LCD.Update()
-    Motor.Start(motor, power * forward)
-    c = Motor.GetCount(motor) * forward
+    MotorA.SetPower(left_power * @left_forward)
+    MotorB.SetPower(right_power * @right_forward)
     Program.Delay(10)
   EndWhile
 EndFunction
 
-Function motor_backward_acceleration(in string motor, in number forward, in number base_power, in number min_power, in number deg, in number acceleration, in number zame)
-  normal_deg = deg - acceleration - zame
-  Motor.ResetCount(motor)
-  c = 0
-  While c < acceleration
-    power = ((c / acceleration) * (base_power - min_power)) + min_power
-    Motor.Start(motor, forward * power * -1)
-    c = Motor.GetCount(motor) * forward * -1
-    Program.Delay(10)
-  EndWhile
-  Motor.Move(motor, forward * base_power * -1, normal_deg, "False")
-  Motor.ResetCount(motor)
-  c = 0
-  While c < zame
-    p = c / zame
-    power = ((base_power - min_power) * (1 - p)) + min_power
-    Motor.Start(motor, forward * power * -1)
-    c = Motor.GetCount(motor) * forward * -1
-    Program.Delay(10)
-  EndWhile
-EndFunction
-
-Sub kick_new_fire
-  Motor.MoveSync(motors, left_forward * 20, right_forward * -20, 370, "True")
-  move_forward_acceleration(20, 10, 160, 70, 70)
-  stop()
-  Motor.ResetCount(water_motor)
-  Motor.Start(water_motor, -40)
-  Program.Delay(1000)
-  Motor.Stop(water_motor, "True")
-  move_backward_acceleration(20, 10, 160, 70, 70)
-  stop()
-  Motor.Move(water_motor, 40, Math.Abs(Motor.GetCount(water_motor)), "True")
-  Motor.MoveSync(motors, left_forward * -20, right_forward * 20, 370, "True")
+Sub kick_water
+  Motor.Start(water_motor, 50)
+  Program.Delay(500)
+  Motor.Move(water_motor, -50, 100, "True")
 EndSub
 
-Sub drop_cube
-  Motor.Start(water_motor, -50)
-  Program.Delay(1000)
-  Motor.Stop(water_motor, "True")
+Sub find_line
+  l = (Sensor.ReadPercent(@left_line) - @left_min) / (@left_max - @left_min) * 100
+  r = (Sensor.ReadPercent(@right_line) - @right_min) / (@right_max - @right_min) * 100
+  reset()
+  If l < 25 Then
+    MotorA.OffAndBrake()
+    
+    MotorB.StartSpeed(15 * @right_forward)
+    While MotorB.GetTacho() * @right_forward < 90
+    EndWhile
+    MotorB.OffAndBrake()
+    
+    MotorA.StartSpeed(15 * @left_forward)
+    While MotorA.GetTacho() * @left_forward < 80
+    EndWhile
+    MotorA.OffAndBrake()
+  ElseIf r < 25 Then
+    MotorB.OffAndBrake()
+    
+    MotorA.StartSpeed(15 * @left_forward)
+    While MotorA.GetTacho() * @left_forward < 90
+    EndWhile
+    MotorA.OffAndBrake()
+    
+    MotorB.StartSpeed(15 * @right_forward)
+    While MotorB.GetTacho() * @right_forward < 80
+    EndWhile
+    MotorB.OffAndBrake()
+  Else
+    MotorA.OffAndBrake()
+    MotorB.StartSpeed(15 * @right_forward)
+    
+    finished = "False"
+    has_moved = "False"
+    While finished = "False"
+      l = (Sensor.ReadPercent(@left_line) - @left_min) / (@left_max - @left_min) * 100
+      r = (Sensor.ReadPercent(@right_line) - @right_min) / (@right_max - @right_min) * 100
+      If r < 25 Then
+        finished = "True"
+        MotorB.OffAndBrake()
+        c = MotorB.GetTacho() * @right_forward
+        MotorA.StartSpeed(15 * @left_forward)
+        While MotorA.GetTacho() * @left_forward < c
+        EndWhile
+        MotorA.OffAndBrake()
+        
+      ElseIf r > 60 And l < 35 And l > 20 Then
+        If has_moved = "False" Then
+          c1 = MotorB.GetTacho() * @right_forward
+          While MotorB.GetTacho() * @right_forward < c1 + 25
+          EndWhile
+          has_moved = "True"
+        Else
+          finished = "True"
+          MotorB.OffAndBrake()
+          c = MotorB.GetTacho() * @right_forward
+          MotorA.StartSpeed(15 * @left_forward)
+          While MotorA.GetTacho() * @left_forward < c + 170
+          EndWhile
+          MotorA.OffAndBrake()
+          
+          MotorB.StartSpeed(15 * @right_forward)
+          While MotorB.GetTacho() * @right_forward < 160
+          EndWhile
+          MotorB.OffAndBrake()
+        EndIf
+      ElseIf r > 60 And l < 35 Then
+        finished = "True"
+        c1 = MotorB.GetTacho() * @right_forward
+        While MotorB.GetTacho() * @right_forward < c1 + 90
+        EndWhile
+        MotorB.OffAndBrake()
+        reset()
+        beep()
+        MotorA.StartSpeed(15 * @left_forward)
+        While MotorA.GetTacho() * @left_forward < 160
+        EndWhile
+        MotorA.OffAndBrake()
+      EndIf
+    EndWhile
+  EndIf
 EndSub
 
-' ---- Основная номинация ----
 Sub main
-  Sensor.SetMode(line_sensor, 4)
-  Sensor.Wait(line_sensor)
-  'While "True"
-  'values = Sensor.ReadRaw(line_sensor, 3)
-  'red = Text.append(values[0], "")
-  'green = Text.append(values[1], "")
-  'blue = Text.append(values[2], "")
-  't = red + " " + green + " " + blue
-  'LCD.StopUpdate()
-  'LCD.Clear()
-  'LCD.Text(1, 0, 0, 2, t)
-  'LCD.Update()
-  'EndWhile
-  color = "unknown"
-  values = Sensor.ReadRaw(line_sensor, 3)
-  red = values[0]
-  green = values[1]
-  blue = values[2]
-  If red < 40 And green < 40 And blue < 40 Then
-    color = "brown"
-  ElseIf red > 90 And green > 90 And blue > 90 Then
-    color = "white"
-  ElseIf red > 70 And green < 40 Then
-    color = "red"
-  ElseIf red > 70 And green > 40 Then
-    color = "yellow"
-  ElseIf blue < 50 Then
-    color = "green"
-  ElseIf blue > 50 Then
-    color = "blue"
-  EndIf
-  LCD.Clear()
-  LCD.Text(1, 0, 0, 2, color)
-  Program.Delay(2000)
-  If color = "green" Or color = "yellow" Or color = "red" Then
-    ' 180
-    rotate_right_acceleration(20, 10, 185, 70, 70)
-    Time.Reset1()
-    reset()
-    While Time.Get1() < 4500
-      go_forward_new(40)
-    EndWhile
-    stop()
-    ' 200, 175, 350
-    Sensor.SetMode(line_sensor, 0)
-    motor_backward_acceleration(left_motor, left_forward, 20, 15, 200, 80, 80)
-    stop()
-    motor_forward_acceleration(right_motor, right_forward, 20, 15, 165, 70, 70)
-    stop()
-    Sensor.Wait(line_sensor)
-    reset()
-    While Motor.GetCount(not_inversed_motor) < 110 Or Sensor.ReadPercent(line_sensor) > 11
-      go_forward_new(30)
-    EndWhile
-    stop()
-  Else
-    ' 180
-    Sensor.SetMode(line_sensor, 0)
-    rotate_left_acceleration(20, 10, 185, 70, 70)
-    stop()
-    Motor.StartSync(motors, left_forward * -40, right_forward * -40)
-    Program.Delay(4500)
-    stop()
-    motor_forward_acceleration(left_motor, left_forward, 20, 15, 360, 100, 100)
-    stop()
-    reset()
-    Sensor.Wait(line_sensor)
-    While Sensor.ReadPercent(line_sensor) < 11
-      go_backward_new(20)
-    EndWhile
-    stop()
-  EndIf
-  move_forward_acceleration(30, 10, 350, 0, 300)
+  move_motor_forward(left_motor, left_forward, 320, 40, "True", "True", "True")
+  move_motor_forward(right_motor, right_forward, 320, 40, "True", "True", "True")
+  forward_deg(1200)
+  
+  movement_init(80)
+  While Sensor.ReadPercent(left_line) < 30 Or Sensor.ReadPercent(right_line) < 30
+    sync()
+  EndWhile
+  While Sensor.ReadPercent(left_line) > 10 Or Sensor.ReadPercent(right_line) > 10
+    sync()
+  EndWhile
+  zame(80, 15, 40)
+  
   stop()
-  motor_backward_acceleration(left_motor, left_forward, 20, 15, 360, 100, 100)
-  stop()
-  Motor.Move(grabber_motor, -50, 165, "True")
-  Motor.StartSync(motors, left_forward * -30, right_forward * -30)
-  Program.Delay(2000)
-  stop()
-  Motor.Move(left_motor, left_forward * 20, 7, "True")
   reset()
-  Time.Reset1()
-  While Time.Get1() < 4500
-    go_forward_new(30)
-  EndWhile
+  delay(250)
+  move_motor_backward(right_motor, right_forward, 490, 40, "True", "False", "False")
+  movement_init(-50)
+  Program.Delay(700)
   stop()
-  move_backward_acceleration(20, 10, 10, 0, 0)
-  stop()
-  Motor.Move(grabber_motor, -50, 120, "True")
-  Motor.StartSync(motors, left_forward * -40, right_forward * -40)
-  Program.Delay(4500)
-  stop()
-  motor_forward_acceleration(left_motor, left_forward, 20, 15, 370, 100, 100)
+  forward_deg(70)
+  MotorA.OffAndBrake()
+  move_motor_forward(right_motor, right_forward, 540, 40, "False", "True", "True")
+  
   reset()
-  While Motor.GetCount(not_inversed_motor) < 700
-    go_forward_new(20)
+  
+  movement_init(80)
+  l = (Sensor.ReadPercent(@left_line) - @left_min) / (@left_max - @left_min) * 100
+  r = (Sensor.ReadPercent(@right_line) - @right_min) / (@right_max - @right_min) * 100
+  While l > 50 Or r > 50
+    line(l, r)
+    l = (Sensor.ReadPercent(@left_line) - @left_min) / (@left_max - @left_min) * 100
+    r = (Sensor.ReadPercent(@right_line) - @right_min) / (@right_max - @right_min) * 100
   EndWhile
-  While Sensor.ReadPercent(line_sensor) < 23
-    go_forward_new(20)
-  EndWhile
-  While Sensor.ReadPercent(line_sensor) > 10
-    go_forward_new(20)
-  EndWhile
+  Thread.Run = beep
+  
+  'values = Sensor.ReadRaw(right_sensor, 3)
+  'object = "none"
+  'If values[0] > 30 Then
+  'object = "fire"
+  '' Огонь
+  'beep()
+  'zame(80, 120)
+  'Motor.Stop(left_motor, "True")
+  'move_motor_forward(right_motor, right_forward, 120, 20, "False", "False", "True")
+  'move_motor_forward(left_motor, left_forward, 95, 20, "False", "False", "True")
+  'speedup(80, 120)
+  'forward_deg(490 - 120)
+  'Thread.Run = kick_water
+  'ElseIf values[0] > 10 Then
+  '' Человек
+  'beep()
+  'Speaker.Wait()
+  'beep()
+  'ElseIf values[2] > 3 Then
+  '' Химикат
+  'Thread.Run = take_chem
+  'EndIf 
+  
+  forward_deg(630)
+  Thread.Run = beep
+  forward_deg(930 - 120)
+  zame(80, 0, 120)
   stop()
-  move_forward_acceleration(30, 30, 590, 0, 0)
-  stop()
-  delay()
-  ' 110
-  Motor.Move(grabber_motor, 50, 110, "True")
-  stop()
-  Sensor.SetMode(right_sensor, 0)
-  'move_backward_acceleration(50, 50, 300, 0, 0)
-  'stop()
-  reset()
-  While Sensor.ReadPercent(line_sensor) < 23
-    go_backward_new(20)
-  EndWhile
-  While Sensor.ReadPercent(line_sensor) > 10
-    go_backward_new(20)
-  EndWhile
-  stop()
-  Motor.Start(grabber_motor, 50)
-  Program.Delay(2000)
-  Motor.Stop(grabber_motor, "True")
-  move_backward_acceleration(20, 10, 560, 0, 100)
-  stop()
-  motor_backward_acceleration(left_motor, left_forward, 20, 20, 360, 0, 0)
-  stop()
-  Motor.StartSync(motors, left_forward * -30, right_forward * -30)
-  Program.Delay(3000)
-  stop()
-  ' 270
-  move_forward_acceleration(20, 15, 280, 0, 100)
-  after_action()
-  z = Sensor.ReadRawValue(right_sensor, 0)
-  LCD.Clear()
-  LCD.Text(1, 0, 0, 2, z)
-  Program.Delay(1000)
-  If z = 0 Then
-    move_backward_acceleration(20, 20, 60, 0, 0)
-    after_action()
-    motor_backward_acceleration(right_motor, right_forward, 20, 20, 370, 0, 0)
-    after_action()
-    move_forward_acceleration(20, 15, 210, 100, 100)
-    after_action()
-    Motor.Start(water_motor, -50)
-    Program.Delay(1000)
-    Motor.Stop(water_motor, "True")
-    move_backward_acceleration(20, 15, 210, 100, 100)
-    after_action()
-    motor_forward_acceleration(right_motor, right_forward, 20, 20, 370, 0, 0)
-    Motor.StartSync(motors, left_forward * -30, right_forward * -30)
-    Program.Delay(1000)
-    stop()
-  Else
-    move_forward_acceleration(20, 15, 160, 60, 60)
-    after_action()
-    z = Sensor.ReadRawValue(right_sensor, 0)
-    If z = 0 Then
-      motor_forward_acceleration(left_motor, left_forward, 20, 20, 140, 0, 0)
-      after_action()
-      move_forward_acceleration(20, 20, 230, 0, 0)
-      after_action()
-      Motor.Start(water_motor, -50)
-      Program.Delay(1000)
-      Motor.Stop(water_motor, "True")
-      move_backward_acceleration(20, 20, 230, 0, 0)
-      after_action()
-      motor_backward_acceleration(left_motor, left_forward, 20, 20, 140, 0, 0)
-      after_action()
-      Motor.StartSync(motors, left_forward * -30, right_forward * -30)
-      Program.Delay(3000)
-      stop()
-    Else
-      reset()
-      Time.Reset1()
-      While Time.Get1() < 5000
-        go_forward_new(30)
-      Endwhile
-      stop()
-      move_backward_acceleration(20, 20, 60, 0, 0)
-      after_action()
-      motor_backward_acceleration(right_motor, right_forward, 20, 20, 370, 0, 0)
-      after_action()
-      move_forward_acceleration(20, 15, 210, 100, 100)
-      after_action()
-      Motor.Start(water_motor, -50)
-      Program.Delay(1000)
-      Motor.Stop(water_motor, "True")
-      move_backward_acceleration(20, 15, 210, 100, 100)
-      after_action()
-      motor_forward_acceleration(right_motor, right_forward, 20, 20, 370, 0, 0)
-      Motor.StartSync(motors, left_forward * -30, right_forward * -30)
-      Program.Delay(5000)
-      stop()
-    EndIf
-  EndIf
-  stop()
-  If color = "brown" Then
-    Motor.MoveSync(motors, left_forward * 20, right_forward * 20, 30, "True")
-    stop()
-  ElseIf color = "white" Then
-    move_forward_acceleration(20, 20, 600, 0, 0)
-    stop()
-  ElseIf color = "blue" Then
-    reset()
-    Time.Reset1()
-    While Time.Get1() < 5000
-      go_forward_new(30)
-    EndWhile
-    stop()
-    Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 30, "True")
-  ElseIf color = "red" Then
-    motor_forward_acceleration(right_motor, right_forward, 20, 20, 365, 0, 0)
-    after_action()
-    move_forward_acceleration(20, 20, 430, 0, 0)
-    stop()
-  ElseIf color = "yellow" Then
-    motor_forward_acceleration(right_motor, right_forward, 20, 20, 170, 0, 0)
-    after_action()
-    move_forward_acceleration(20, 20, 850, 0, 0)
-    stop()
-  ElseIf color = "green" Then
-    motor_forward_acceleration(right_motor, right_forward, 20, 20, 100, 0, 0)
-    after_action()
-    move_forward_acceleration(20, 20, 1300, 0, 0)
-    stop()
-    EndIf
-  ' 140 230
+  Thread.Run = beep
+  delay(700)
+  speedup_backward(30, 70)
+  'Motor.MoveSync(motors, left_forward * 30, right_forward * -30, , "True ")
 EndSub
 
 main()

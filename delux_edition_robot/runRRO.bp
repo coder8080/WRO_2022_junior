@@ -81,7 +81,6 @@ Function ultra_line(in number a)
 EndFunction
 
 Function endless_line()
-  'Motor.StartPower("AB", 80)
   MotorA.StartPower(80 * @left_forward)
   MotorB.StartPower(80 * @right_forward)
   While "True"
@@ -133,7 +132,7 @@ Function sync(in number power)
   left_power = power - delta
   right_power = power + delta
   MotorA.SetPower(left_power * @left_forward)
-  MotorB.SetSpeed(right_power * @right_forward)
+  MotorB.Setpower(right_power * @right_forward)
   @last_err = err
 EndFunction
 
@@ -261,7 +260,21 @@ Sub take_chem_on_left
   chem = "True"
 EndSub
 
+Function show_time(in string to_delay)
+  millisecond = Time.Get9()
+  seconds = Math.Floor(millisecond / 1000)
+  minutes = Math.Floor(seconds / 60)
+  seconds = Math.Remainder(seconds, 60)
+  text = minutes + ":" + seconds
+  LCD.Clear()
+  LCD.Text(1, 0, 0, 2, text)
+  If to_delay = "True" Then
+    delay(100000)
+  EndIf
+EndFunction
+
 Sub main
+  Time.Reset9()
   a = 97
   MotorA.StartPower(80 * left_forward)
   MotorB.StartPower(85 * right_forward)
@@ -310,7 +323,7 @@ Sub main
     object = "fire"
     fire_count = fire_count + 1
     Thread.Run = kick_water
-  ElseIf r > 15 Then
+  ElseIf chem = "False" And r > 15 Then
     ' Химикат
     brown = "True"
     object = "chem"
@@ -333,24 +346,30 @@ Sub main
     delay(200)
     r = Sensor.ReadRawValue(right_sensor, 0)
     object = "none"
-    If r > 160 Then
-      ' Человек
-      brown = "True"
-      brown_man = "True"
-      object = "human"
-      men_count = men_count + 1
-    ElseIf r > 80 Then
-      ' Огонь
-      brown = "True"
-      object = "fire"
-      fire_count = fire_count + 1
-      
-      speedup(40, 15, 50, -1)
-      zame(40, 15, 50, -1)
-      stop()
-      kick_water()
-      speedup(40, 15, 100, 1)
-    ElseIf r > 20 Then
+    If r > 80 Then
+      Sensor.SetMode(right_sensor, 2)
+      delay(200)
+      g = Sensor.ReadRawValue(right_sensor, 0)
+      Sensor.SetMode(right_sensor, 1)
+      If g > 100 Then
+        ' Человек
+        brown = "True"
+        brown_man = "True"
+        object = "human"
+        men_count = men_count + 1
+      Else
+        ' Огонь
+        brown = "True"
+        object = "fire"
+        fire_count = fire_count + 1
+        
+        speedup(40, 15, 50, -1)
+        zame(40, 15, 50, -1)
+        stop()
+        kick_water()
+        speedup(40, 15, 100, 1)
+      EndIf
+    ElseIf chem = "False" And r > 20 Then
       ' Химикат
       red = "True"
       object = "chem"
@@ -377,19 +396,25 @@ Sub main
   ' Красная зона, справа
   r = Sensor.ReadRawValue(right_sensor, 0)
   object = "none"
-  If r > 160 Then
-    ' Человек
-    red = "True"
-    red_man = "True"
-    object = "R: man"
-    men_count = men_count + 1
-  ElseIf r > 80 Then
-    ' Огонь
-    red = "True"
-    object = "R: fire"
-    fire_count = fire_count + 1
-    kick_water()
-  Else
+  If r > 80 Then
+    Sensor.SetMode(right_sensor, 2)
+    delay(200)
+    g = Sensor.ReadRawValue(right_sensor, 0)
+    Sensor.SetMode(right_sensor, 1)
+    If g > 100 Then
+      ' Человек
+      red = "True"
+      red_man = "True"
+      object = "R: man"
+      men_count = men_count + 1
+    Else
+      ' Огонь
+      red = "True"
+      object = "R: fire"
+      fire_count = fire_count + 1
+      kick_water()
+    EndIf
+  ElseIf chem = "False" Then
     Sensor.SetMode(right_sensor, 4)
     delay(200)
     w = Sensor.ReadRawValue(right_sensor, 0)
@@ -409,31 +434,33 @@ Sub main
   If red = "False" Then
     ' Красная зона, слева
     r = Sensor.ReadRawValue(left_sensor, 0)
-    LCD.Clear()
-    LCD.Text(1, 0, 0, 2, r)
-    Program.Delay(1000)
-    If r > 140 Then
-      ' Человек
-      red = "True"
-      red_man = "True"
-      object = "L: man"
-      men_count = men_count + 1
-    ElseIf r > 80 Then
-      ' Огонь
-      red = "True"
-      object = "L: fire"
-      fire_count = fire_count + 1
-      kick_water()
-    Else
-      Sensor.SetMode(left_sensor, 4)
-      move_motor(right_motor, right_forward * -1, 20, 20, "False", "False", "True")
-      w = Sensor.ReadRawValue(left_sensor, 0)
+    If r > 80 Then
+      Sensor.SetMode(left_sensor, 2)
+      delay(200)
+      g = Sensor.ReadRawValue(left_sensor, 0)
       Sensor.SetMode(left_sensor, 1)
-      MotorB.StartPower(20)
-      Program.Delay(500)
+      If g > 100 Then
+        ' Человек
+        red = "True"
+        red_man = "True"
+        object = "L: man"
+        men_count = men_count + 1
+      Else
+        ' Огонь
+        red = "True"
+        object = "L: fire"
+        fire_count = fire_count + 1
+        kick_water()
+      EndIf
+    ElseIf chem = "False" Then
+      move_motor(right_motor, right_forward * -1, 40, 20, "False", "False", "True")
+      delay(200)
+      ultra = Sensor.ReadRawValue(ultrasonic, 0)
+      MotorB.StartPower(80 * right_forward)
+      Program.Delay(1000)
       MotorB.OffAndBrake()
       
-      If w > 60 Then
+      If ultra < 75 Then
         ' Химикат
         red = "True"
         object = "L: chem"
@@ -441,8 +468,6 @@ Sub main
         take_left = "True"
       EndIf
     EndIf
-  Else
-    beep()
   EndIf
   
   If take_left = "True" Then
@@ -460,7 +485,7 @@ Sub main
     stop()
     delay(200)
     move_motor(left_motor, left_forward, 90, 20, "True", "False", "True")
-    movement_init(30)
+    movement_init(50)
     Program.Delay(1000)
     stop()
   ElseIf take_right = "True" Then
@@ -478,7 +503,7 @@ Sub main
     stop()
     delay(200)
     move_motor(right_motor, right_forward, 90, 20, "True", "False", "True")
-    movement_init(30)
+    movement_init(50)
     Program.Delay(1000)
     stop()
   EndIf
@@ -507,7 +532,7 @@ Sub main
     object = "fire"
     fire_count = fire_count + 1
     kick_water()
-  Else
+  ElseIf chem = "False" Then
     Sensor.SetMode(right_sensor, 4)
     delay(200)
     w = Sensor.ReadRawValue(right_sensor, 0)
@@ -522,28 +547,41 @@ Sub main
   EndIf
   
   move_motor(right_motor, right_forward, 260, 30, "True", "True", "True")
-  move_motor(left_motor, left_forward, 260, 30, "True", "False", "False")
+  move_motor(left_motor, left_forward, 260, 30, "True", "True", "True")
   
   If yellow = "False" Then
-    zame(30, 20, 165, 1)
+    'zame(30, 20, 175, 1)
+    ' 85, 90
+    speedup(30, 20, 80, 1)
+    zame(30, 20, 90, 1)
     stop()
     
     ' Жёлтая зона, второй элемент
     delay(200)
     r = Sensor.ReadRawValue(left_sensor, 0)
-    If r > 180 Then
-      ' Человек
-      yellow = "True"
-      yellow_man = "True"
-      object = "man"
-      men_count = men_count + 1
-    ElseIf r > 100 Then
-      ' Огонь
-      yellow = "True"
-      object = "fire"
-      fire_count = fire_count + 1
-      kick_water()
-    Else
+    If r > 60 Then
+      Sensor.SetMode(left_sensor, 2)
+      delay(200)
+      g = Sensor.ReadRawValue(left_sensor, 0)
+      Sensor.SetMode(left_sensor, 1)
+      If g > 70 Then
+        ' Человек
+        yellow = "True"
+        yellow_man = "True"
+        object = "man"
+        men_count = men_count + 1
+      Else
+        ' Огонь
+        yellow = "True"
+        object = "fire"
+        fire_count = fire_count + 1
+        speedup(30, 20, 50, -1)
+        zame(30, 20, 50, -1)
+        stop()
+        kick_water()
+        speedup(30, 20, 100, 1)
+      EndIf
+    ElseIf chem = "False" Then
       ultra = Sensor.ReadRawValue(ultrasonic, 0)
       If ultra < 70 Then
         ' Химикат
@@ -565,6 +603,270 @@ Sub main
   MotorB.SetPower(40 * right_forward)
   Program.Delay(1000)
   stop()
+  
+  ' Зелёная зона, первый элемент
+  r = Sensor.ReadRawValue(left_sensor, 0)
+  object = "none"
+  If r > 160 Then
+    ' Человек
+    green = "True"
+    green_man = "True"
+    object = "man"
+    men_count = men_count + 1
+  ElseIf r > 80 Then
+    ' Огонь
+    green = "True"
+    obejct = "fire"
+    fire_count = fire_count + 1
+    kick_water()
+  ElseIf chem = "False" Then
+    Sensor.SetMode(left_sensor, 4)
+    delay(200)
+    w = Sensor.ReadRawValue(left_sensor, 0)
+    Sensor.SetMode(left_sensor, 1)
+    If w > 45 Then
+      ' Химикат
+      green = "True"
+      object = "chem"
+      chem = "True"
+      
+      speedup(30, 20, 80, -1)
+      zame(30, 20, 80, -1)
+      stop()
+      Motor.Move(grabber_motor, 50, 170, "True")
+      move_motor(right_motor, right_forward, 160, 30, "True", "True", "True")
+      Motor.Move(grabber_motor, 50, 110, "True")
+      move_motor(right_motor, right_forward * -1, 160, 30, "True", "True", "True")
+      movement_init(50)
+      delay(1000)
+      stop()
+    EndIf
+  EndIf
+  move_motor(right_motor, right_forward * -1, 240, 30, "True", "True", "True")
+  move_motor(left_motor, left_forward, 105, 30, "True", "True", "True")
+  movement_init(-50)
+  delay(1200)
+  stop()
+  speedup(30, 20, 120, 1)
+  If green = "False" Then
+    ' 425
+    forward_deg(415 - 120 - 120, 30)
+    zame(30, 15, 120, 1)
+    stop()
+    
+    ' Зелёная зона, второй элемент
+    delay(200)
+    r = Sensor.ReadRawValue(left_sensor, 0)
+    object = "none"
+    If r > 80 Then
+      Sensor.SetMode(left_sensor, 2)
+      delay(200)
+      g = Sensor.ReadRawValue(left_sensor, 0)
+      Sensor.SetMode(left_sensor, 1)
+      If g > 100 Then
+        ' Человек
+        green = "True"
+        green_man = "True"
+        object = "man"
+        men_count = men_count + 1
+      Else
+        ' Огонь
+        green = "True"
+        object = "fire"
+        fire_count = fire_count + 1
+        speedup(30, 20, 50, -1)
+        zame(30, 20, 50, -1)
+        stop()
+        kick_water()
+        speedup(30, 20, 100, 1)
+      EndIf
+    ElseIf chem = "False" Then
+      ultra = Sensor.ReadRawValue(ultrasonic, 0)
+      If ultra < 90 Then
+        'If r > 28 Or r < 18 Then
+        ' Химикат
+        green = "True"
+        object = "chem"
+        chem = "True"
+        
+        speedup(30, 20, 50, -1)
+        zame(30, 20, 50, -1)
+        MotorB.OffAndBrake()
+        move_motor(left_motor, left_forward * -1, 100, 30, "False", "True", "True")
+        Motor.Move(grabber_motor, 50, 170, "True")
+        speedup(30, 20, 50, 1)
+        zame(30, 20, 50, 1)
+        stop()
+        Motor.Move(grabber_motor, 50, 110, "True")
+        speedup(30, 20, 55, -1)
+        zame(30, 15, 55, -1)
+        stop()
+        delay(300)
+        move_motor(left_motor, left_forward, 105, 30, "True", "True", "True")
+        stop()
+        delay(300)
+        speedup(30, 20, 110, 1)
+      EndIf
+    EndIf
+    If object = "none" Or object = "man" Then
+      speedup(30, 20, 80, 1)
+      zame(30, 20, 70, 1)
+    Else
+      forward_deg(80, 30)
+      zame(30, 20, 70, 1)
+    EndIf
+  Else
+    forward_deg(410 + 150 - 120, 30)
+  EndIf
+  
+  ' Синяя зона, первый элемент
+  is_on_second_blue = "False"
+  stop()
+  delay(200)
+  r = Sensor.ReadRawValue(left_sensor, 0)
+  If r > 80 Then
+    Sensor.SetMode(left_sensor, 2)
+    delay(200)
+    g = Sensor.ReadRawValue(left_sensor, 0)
+    Sensor.SetMode(left_sensor, 1)
+    If g > 100 Then
+      ' Человек
+      blue = "True"
+      blue_man = "True"
+      object = "man"
+      men_count = men_count + 1
+    Else
+      ' Огонь
+      blue = "True"
+      object = "fire"
+      fire_count = fire_count + 1
+      kick_water()
+    EndIf
+  ElseIf chem = "False" Then
+    beep()
+    delay(500)
+    ultra = Sensor.ReadRawValue(ultrasonic, 0)
+    LCD.Clear()
+    LCD.Text(1, 0, 0, 2, ultra)
+    If ultra < 80 Then
+      ' Химикат
+      blue = "True"
+      object = "chem"
+      chem = "True"
+      
+      speedup(30, 20, 290 / 2, 1)
+      zame(30, 20, 290 / 2, 1)
+      stop()
+      delay(200)
+      move_motor(left_motor, left_forward * -1, 360, 30, "True", "True", "True")
+      Motor.Move(grabber_motor, 50, 170, "True")
+      delay(200)
+      speedup(30, 20, 35, 1)
+      zame(30, 20, 35, 1)
+      stop()
+      Motor.Move(grabber_motor, 50, 110, "True")
+      delay(200)
+      speedup(30, 20, 40, -1)
+      zame(30, 20, 40, -1)
+      stop()
+      delay(200)
+      move_motor(left_motor, left_forward, 360, 30, "True", "True", "True")
+    EndIf
+  EndIf
+  
+  If blue = "False" Then
+    is_on_second_blue = "True"
+    speedup(40, 20, 100, 1)
+    reset()
+    While MotorA.GetTacho() * left_forward < 510 - 200
+      ultra_line(91)
+    EndWhile
+    zame(40, 20, 100, 1)
+    stop()
+    ' Реализовать эту позицию
+  EndIf
+  
+  white_object = "none"
+  If men_count < 2 Then
+    white_object = "man"
+  ElseIf fire_count < 2 Then
+    white_object = "fire"
+  ElseIf chem = "False" Then
+    white_object = "chem"
+  EndIf
+  
+  If white_object = "man" Then
+    white = "True"
+    white_man = "True"
+    ' Надо ли нам вообще ехать в белую зону?
+  ElseIf white_object <> "none" Or take_chem_in_yellow = "True" Then
+    ' Мы стоим на второй синей позиции или на первой?
+    If is_on_second_blue = "True" Then
+      Sensor.SetMode(right_sensor, 0)
+      speedup(30, 30, 50, -1)
+      zame(30, 30, 50, -1)
+      MotorA.OffAndBrake()
+      move_motor(right_motor, right_forward * -1, 360, 30, "True", "True", "True")
+      movement_init(-50)
+      delay(700)
+      stop()
+      delay(100)
+      speedup(30, 20, 100, 1)
+      reset()
+      Sensor.SetMode(line, 2)
+      While MotorA.GetTacho() * left_forward < 130
+        sync(30)
+      EndWhile
+      While Sensor.ReadRawValue(line, 0) <> 6
+        sync(30)
+      EndWhile
+      
+      ' Если в белой огонь, то воду можно выбросить уже сейчас
+      If white_object = "fire" Then
+        kick_water()
+      EndIf
+      
+      ' А дальше нам вообще надо ехать?
+      If white_object = "chem" Or take_chem_in_yellow = "True" Then
+        Sensor.SetMode(line, 0)
+        forward_deg(430 - 100, 30)
+        zame(30, 20, 100, 1)
+        stop()
+        delay(200)
+        If white_object = "chem" Then
+          move_motor(left_motor, left_forward * -1, 20, 20, "False", "False", "True")
+          stop()
+          delay(200)
+          ch = "False"
+          If Sensor.ReadRawValue(right_sensor, 0) = 12 Then
+            ch = "True"
+          Else
+            Sensor.SetMode(right_sensor, 4)
+            delay(200)
+            w = Sensor.ReadRawValue(right_sensor, 0)
+            If w > 50 Then
+              ch = "True"
+            EndIf
+          EndIf
+          If ch = "True" Then
+            beep()
+            ' Реализовать взятие химиката справа
+          Else
+            ' Реализовать взятие химиката слева
+          EndIf
+        Else
+          ' Реализовать взятие химиката из жёлтой зоны
+        EndIf
+        ' Реализовать большой отъезд назад
+      Else
+        ' Реализовать малый отъезд назад
+      EndIf
+    Else
+      ' Реализовать доезд из первой позиции синей зоны
+    EndIf
+  EndIf
+  
+  show_time("True")
 EndSub
 
 main()

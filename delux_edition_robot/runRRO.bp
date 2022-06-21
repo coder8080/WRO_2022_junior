@@ -51,10 +51,40 @@ If EV3.BatteryVoltage < 8 Then
   beep()
 EndIf
 
+' --- Утилитарные функции ---
+
 ' Инициализация движения (старт моторов)
 Function movement_init(in number power)
   MotorA.StartPower(power * @left_forward)
   MotorB.StartPower(power * @right_forward)
+EndFunction
+
+' Издать звук
+Sub beep
+  Speaker.Tone(100, 500, 200)
+EndSub
+
+' Задержка
+Function delay(in number time)
+  Program.Delay(time)
+EndFunction
+
+' Сброс энкодеров моторов
+Function reset()
+  MotorA.ResetCount()
+  MotorB.ResetCount()
+EndFunction
+
+' Остановка моторов
+Function stop()
+  MotorAB.OffAndBrake()
+EndFunction
+
+' --- Движение по линии ---
+
+' Считать процент с датчика линии
+Function read_percent(out number percent)
+  percent = (Sensor.ReadPercent(@line) - @left_min) / (@left_max - @left_min) * 100
 EndFunction
 
 ' Линия
@@ -111,26 +141,7 @@ Function endless_line()
   EndWhile
 EndFunction
 
-' Издать звук
-Sub beep
-  Speaker.Tone(100, 500, 200)
-EndSub
-
-' Задержка
-Function delay(in number time)
-  Program.Delay(time)
-EndFunction
-
-' Сброс энкодеров моторов
-Function reset()
-  MotorA.ResetCount()
-  MotorB.ResetCount()
-EndFunction
-
-' Остановка моторов
-Function stop()
-  MotorAB.OffAndBrake()
-EndFunction
+' -- Движение по синхронизации & плавные разгоны ---
 
 ' Плавный разгон
 Function speedup(in number base_power, in number min_power, in number deg, in number coef)
@@ -164,7 +175,7 @@ Function sync(in number power)
   @last_err = err
 EndFunction
 
-' Проез вперёд на постоянной мощности с синхронизацией моторов
+' Проезд вперёд на постоянной мощности с синхронизацией моторов
 Function forward_deg(in number deg, in number power)
   movement_init(power)
   reset()
@@ -175,7 +186,7 @@ Function forward_deg(in number deg, in number power)
   EndWhile
 EndFunction
 
-' Движение мотора
+' Движение одного мотора
 Function move_motor(in string motor, in number forward, in number deg, in number max_power, in string acceleration, in string zame, in string to_stop)
   normal_deg = deg
   acceleration_deg = 0
@@ -246,26 +257,7 @@ Function zame(in number base_power, in number min_power, in number deg, in numbe
   EndWhile
 EndFunction
 
-' Считать процент с датчика линии
-Function read_percent(out number percent)
-  percent = (Sensor.ReadPercent(@line) - @left_min) / (@left_max - @left_min) * 100
-EndFunction
-
-' Выбросить воду
-Sub kick_water
-  If water_state = 0 Then
-    Motor.Start(water_motor, 50)
-    Program.Delay(500)
-    Motor.Stop(water_motor, "True")
-    Motor.Move(water_motor, -50, 20, "True")
-    water_state = 1
-  Else
-    Motor.Start(water_motor, -50)
-    Program.Delay(500)
-    Motor.Stop(water_motor, "True")
-    Motor.Move(water_motor, 50, 20, "True")
-  EndIf
-EndSub
+' --- Заборы химиката ---
 
 ' Забрать химикат справа
 Sub take_chem_on_right
@@ -289,41 +281,31 @@ Sub take_chem_on_right
   chem = "True"
 EndSub
 
-' Забрат химикат слева
-Sub take_chem_on_left
+' Забрать химикат слева
+Function take_chem_on_left(in string finish_forward)
   speedup(30, 20, 50, -1)
   zame(30, 20, 50, -1)
   MotorB.OffAndBrake()
-  move_motor(left_motor, left_forward * -1, 100, 30, "False", "True", "True")
-  Motor.Move(grabber_motor, 50, 170, "True")
+  move_motor(@left_motor, @left_forward * -1, 100, 30, "False", "True", "True")
+  Motor.Move(@grabber_motor, 50, 170, "True")
   speedup(30, 20, 50, 1)
   zame(30, 20, 50, 1)
   stop()
-  Motor.Move(grabber_motor, 50, 110, "True")
+  Motor.Move(@grabber_motor, 50, 110, "True")
   speedup(30, 20, 60, -1)
   zame(30, 15, 60, -1)
   stop()
   delay(300)
-  move_motor(left_motor, left_forward, 85, 30, "True", "True", "True")
+  move_motor(@left_motor, @left_forward, 85, 30, "True", "True", "True")
   stop()
   delay(300)
-  speedup(30, 20, 100, 1)
-  chem = "True"
-EndSub
-
-' Вывести на экран время выполнения программы
-Function show_time(in string to_delay)
-  millisecond = Time.Get9()
-  seconds = Math.Floor(millisecond / 1000)
-  minutes = Math.Floor(seconds / 60)
-  seconds = Math.Remainder(seconds, 60)
-  text = minutes + ":" + seconds
-  LCD.Clear()
-  LCD.Text(1, 0, 0, 2, text)
-  If to_delay = "True" Then
-    delay(100000)
+  If finish_forward = "True" Then
+    speedup(30, 20, 100, 1)
   EndIf
+  chem = "True"
 EndFunction
+
+' --- Развозы ---
 
 ' Открыть заслонку
 Function open_cubes(in number coef)
@@ -454,7 +436,8 @@ Function from_protected_to_finish(in string is_inverted)
   stop()
 EndFunction
 
-Function take_cubes(in string is_iverted)
+' Забрать кубы
+Function take_cubes(in string is_inverted)
   get_motors(is_inverted, motor1, motor2, forward1, forward2, coef)
   
   open_cubes(coef)
@@ -485,6 +468,7 @@ Function take_cubes(in string is_iverted)
   stop()
 EndFunction
 
+' Финишировать после развозов
 Function finish_after_deliveries(in string is_inverted)
   get_motors(is_inverted, motor1, motor2, forward1, forward2, coef)
   
@@ -497,6 +481,38 @@ Function finish_after_deliveries(in string is_inverted)
   delay(2000)
   stop()
 EndFunction
+
+' --- Другое ---
+
+' Вывести на экран время выполнения программы
+Function show_time(in string to_delay)
+  millisecond = Time.Get9()
+  seconds = Math.Floor(millisecond / 1000)
+  minutes = Math.Floor(seconds / 60)
+  seconds = Math.Remainder(seconds, 60)
+  text = minutes + ":" + seconds
+  LCD.Clear()
+  LCD.Text(1, 0, 0, 2, text)
+  If to_delay = "True" Then
+    delay(100000)
+  EndIf
+EndFunction
+
+' Выбросить воду
+Sub kick_water
+  If water_state = 0 Then
+    Motor.Start(water_motor, 50)
+    Program.Delay(500)
+    Motor.Stop(water_motor, "True")
+    Motor.Move(water_motor, -50, 20, "True")
+    water_state = 1
+  Else
+    Motor.Start(water_motor, -50)
+    Program.Delay(500)
+    Motor.Stop(water_motor, "True")
+    Motor.Move(water_motor, 50, 20, "True")
+  EndIf
+EndSub
 
 Sub main
   start = "left"
@@ -683,7 +699,7 @@ Sub main
       EndIf
     ElseIf chem = "False" Then
       move_motor(right_motor, right_forward * -1, 40, 20, "False", "False", "True")
-      delay(200)
+      delay(300)
       ultra = Sensor.ReadRawValue(ultrasonic, 0)
       MotorB.StartPower(80 * right_forward)
       Program.Delay(1000)
@@ -762,7 +778,8 @@ Sub main
       yellow_man = "True"
       object = "man"
       men_count = men_count + 1
-    Else    ' Огонь
+    Else
+      ' Огонь
       yellow = "True"
       object = "fire"
       fire_count = fire_count + 1
@@ -823,13 +840,14 @@ Sub main
         speedup(30, 20, 100, 1)
       EndIf
     ElseIf chem = "False" Then
+      delay(300)
       ultra = Sensor.ReadRawValue(ultrasonic, 0)
       If ultra < 70 Then
         ' Химикат
         yellow = "True"
         object = "chem"
         chem = "True"
-        take_chem_on_left()
+        take_chem_on_left("True")
       EndIf
     EndIf
   Else
@@ -863,7 +881,7 @@ Sub main
     fire_count = fire_count + 1
     kick_water()
   ElseIf chem = "False" Then
-    delay(200)
+    delay(300)
     ultra = Sensor.ReadRawValue(ultrasonic, 0)
     If ultra < 70 Then
       ' Химикат
@@ -922,7 +940,7 @@ Sub main
         speedup(30, 20, 100, 1)
       EndIf
     ElseIf chem = "False" Then
-      delay(200)
+      delay(300)
       ultra = Sensor.ReadRawValue(ultrasonic, 0)
       LCD.Clear()
       LCD.Text(1, 0, 0, 2, ultra)
@@ -967,6 +985,7 @@ Sub main
   EndIf
   
   is_first_blue_object_chem = "False"
+  is_second_blue_object_chem = "False"
   ' Синяя зона, первый элемент
   is_on_second_blue = "False"
   stop()
@@ -991,7 +1010,7 @@ Sub main
       kick_water()
     EndIf
   ElseIf chem = "False" Then
-    delay(500)
+    delay(300)
     ultra = Sensor.ReadRawValue(ultrasonic, 0)
     LCD.Clear()
     LCD.Text(1, 0, 0, 2, ultra)
@@ -1033,7 +1052,45 @@ Sub main
     zame(40, 20, 100, 1)
     stop()
     ' Синяя зона, второй элемент
-    ' Реализовать эту позицию
+    object = "none"
+    delay(200)
+    r = Sensor.ReadRawValue(left_sensor, 0)
+    If r > 60 Then
+      Sensor.SetMode(left_sensor, 2)
+      delay(200)
+      g = Sensor.ReadRawValue(left_sensor, 0)
+      Sensor.SetMode(left_sensor, 1)
+      If g > 80 Then
+        ' Человек
+        blue = "True"
+        blue_man = "True"
+        object = "man"
+        men_count = men_count + 1
+      Else
+        ' Огонь
+        blue = "True"
+        object = "Trie"
+        fire_count = fire_count + 1
+        speedup(30, 20, 50, -1)
+        zame(30, 20, 50, -1)
+        stop()
+        kick_water()
+        speedup(30, 20, 50, 1)
+        zame(30, 20, 50, 1)
+        stop()
+      EndIf
+    Else
+      delay(300)
+      ultra = Sensor.ReadRawValue(ultrasonic, 0)
+      If ultra < 80 Then
+        ' Химикат
+        blue = "True"
+        chem = "True"
+        object = "chem"
+        is_second_blue_object_chem = "Treu"
+        take_chem_on_left("False")
+      EndIf
+    EndIf
   EndIf
   
   ' Вычисляю объект в белой зоне
@@ -1057,10 +1114,15 @@ Sub main
   If (white_object = "chem" Or white_object = "fire") Or take_chem_in_yellow = "True" Then
     ' Разные маршруты для первого и второго элемента синей зоны
     If is_on_second_blue = "True" Then
-      Sensor.SetMode(right_sensor, 0)
-      speedup(30, 30, 50, -1)
-      zame(30, 30, 40, -1)
-      MotorA.OffAndBrake()
+      If is_second_blue_object_chem = "False" Then
+        speedup(30, 30, 50, -1)
+        zame(30, 30, 40, -1)
+        MotorA.OffAndBrake()
+      Else
+        speedup(20, 20, 10, 1)
+        stop()
+        delay(200)
+      EndIf
       move_motor(right_motor, right_forward * -1, 360, 30, "True", "True", "True")
       movement_init(-50)
       delay(700)
@@ -1306,13 +1368,14 @@ Sub main
     deliver_group(blue_man, green_man, "False", "False")
     
     ' Финиш
-    '-------------
+    finish_after_deliveries("False")
   Else
     from_protected_to_finish("True")
     take_cubes("True")
     deliver_group(blue_man, green_man, "True", "True")
     deliver_group(white_man, yellow_man, "True", "True")
     deliver_group(brown_man, red_man, "False", "True")
+    finish_after_deliveries("True")
   EndIf
   
   ' Сигнал о завершении и вывод времени на экран

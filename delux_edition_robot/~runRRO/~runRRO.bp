@@ -17,10 +17,10 @@ lv_time_2 = 0
 lv_percent_5 = 0
 lv_power_1 = 0
 lv_a_8 = 0
+lv_power_11 = 0
 lv_deg_12 = 0
 lv_power_12 = 0
 lv_finish_forward_15 = ""
-lv_power_11 = 0
 lv_l_7 = 0
 lv_is_inverted_23 = ""
 lv_is_inverted_24 = ""
@@ -44,7 +44,6 @@ lv_forward1_22 = 0
 lv_forward2_22 = 0
 lv_coef_22 = 0
 gv_p = 0
-lv_p_20 = 0
 lv_minus_deg_21 = 0
 lv_motor1_23 = ""
 lv_motor2_23 = ""
@@ -107,12 +106,12 @@ gv_take_left = ""
 gv_take_right = ""
 gv_w = 0
 gv_ultra = 0
+gv_ch = ""
 gv_is_first_blue_object_chem = ""
 gv_is_second_blue_object_chem = ""
 gv_is_on_second_blue = ""
 gv_white_object = ""
 gv_minus_deg = 0
-gv_ch = ""
 gv_line = 1
 gv_left_sensor = 2
 gv_right_sensor = 3
@@ -163,66 +162,40 @@ EndSub
 Sub f_take_chem_on_right_0
 lv_base_power_10 = 30
 lv_min_power_10 = 20
-lv_deg_10 = 50
+lv_deg_10 = 80
 lv_coef_10 = - 1
 f_speedup_4 ()
 lv_base_power_14 = 30
 lv_min_power_14 = 20
-lv_deg_14 = 50
+lv_deg_14 = 80
 lv_coef_14 = - 1
 f_zame_4 ()
-MotorA.OffAndBrake ()
-lv_motor_13 = gv_right_motor
-lv_forward_13 = gv_right_forward * - 1
-lv_deg_13 = 100
-lv_max_power_13 = 30
-lv_acceleration_13 = "False"
-lv_zame_13 = "True"
-lv_to_stop_13 = "True"
-f_move_motor_7 ()
+f_stop_0 ()
 Motor.Move ( gv_grabber_motor , 50 , 170 , "True" )
-lv_base_power_10 = 30
-lv_min_power_10 = 20
-lv_deg_10 = 50
-lv_coef_10 = 1
-f_speedup_4 ()
-lv_base_power_14 = 30
-lv_min_power_14 = 20
-lv_deg_14 = 50
-lv_coef_14 = 1
-f_zame_4 ()
-f_stop_0 ()
-Motor.Move ( gv_grabber_motor , 50 , 110 , "True" )
-lv_base_power_10 = 30
-lv_min_power_10 = 20
-lv_deg_10 = 60
-lv_coef_10 = - 1
-f_speedup_4 ()
-lv_base_power_14 = 30
-lv_min_power_14 = 15
-lv_deg_14 = 60
-lv_coef_14 = - 1
-f_zame_4 ()
-f_stop_0 ()
-lv_time_2 = 300
-f_delay_1 ()
-lv_motor_13 = gv_right_motor
-lv_forward_13 = gv_right_forward
-lv_deg_13 = 85
-lv_max_power_13 = 30
-lv_acceleration_13 = "True"
-lv_zame_13 = "True"
+lv_motor_13 = gv_left_motor
+lv_forward_13 = gv_left_forward
+lv_deg_13 = 130
+lv_max_power_13 = 20
+lv_acceleration_13 = "False"
+lv_zame_13 = "False"
 lv_to_stop_13 = "True"
 f_move_motor_7 ()
-f_stop_0 ()
-lv_time_2 = 300
+Motor.Move ( gv_grabber_motor , 50 , 110 , "True" )
+lv_motor_13 = gv_left_motor
+lv_forward_13 = gv_left_forward * - 1
+lv_deg_13 = 120
+lv_max_power_13 = 20
+lv_acceleration_13 = "False"
+lv_zame_13 = "False"
+lv_to_stop_13 = "True"
+f_move_motor_7 ()
+lv_time_2 = 200
 f_delay_1 ()
 lv_base_power_10 = 30
 lv_min_power_10 = 20
-lv_deg_10 = 100
+lv_deg_10 = 160
 lv_coef_10 = 1
 f_speedup_4 ()
-gv_chem = "True"
 EndSub
 Sub f_kick_water_0
 If gv_water_state = 0 Then
@@ -239,9 +212,10 @@ Motor.Move ( gv_water_motor , 50 , 20 , "True" )
 EndIf
 EndSub
 Sub f_main_0
-gv_start = "left"
+gv_start = "right"
 Time.Reset9 ()
 gv_a = 97
+If gv_start = "left" Then
 MotorA.StartPower ( 80 * gv_left_forward )
 MotorB.StartPower ( 85 * gv_right_forward )
 f_reset_0 ()
@@ -302,6 +276,73 @@ gv_p = lv_percent_5
 lv_a_8 = gv_a
 f_ultra_line_1 ()
 EndWhile
+Else
+f_beep_0 ()
+MotorA.StartPower ( 80 * gv_left_forward )
+MotorB.StartPower ( 40 * gv_right_forward )
+f_reset_0 ()
+While MotorA.GetTacho () * gv_left_forward < 1000
+EndWhile
+f_read_percent_1 ()
+gv_p = lv_percent_5
+While gv_p < 50
+f_read_percent_1 ()
+gv_p = lv_percent_5
+EndWhile
+While gv_p > 20
+f_read_percent_1 ()
+gv_p = lv_percent_5
+EndWhile
+f_stop_0 ()
+lv_motor_13 = gv_right_motor
+lv_forward_13 = gv_right_forward
+lv_deg_13 = 180
+lv_max_power_13 = 40
+lv_acceleration_13 = "False"
+lv_zame_13 = "Fase"
+lv_to_stop_13 = "True"
+f_move_motor_7 ()
+Motor.Start ( gv_left_motor , gv_left_forward * - 40 )
+lv_time_2 = 1000
+f_delay_1 ()
+Motor.Stop ( gv_left_motor , "True" )
+f_beep_0 ()
+Time.Reset1 ()
+lv_power_1 = 40
+f_movement_init_1 ()
+f_reset_0 ()
+While Time.Get1 () < 3000
+lv_power_11 = 40
+f_sync_1 ()
+EndWhile
+f_stop_0 ()
+lv_motor_13 = gv_right_motor
+lv_forward_13 = gv_right_forward * - 1
+lv_deg_13 = 230
+lv_max_power_13 = 30
+lv_acceleration_13 = "True"
+lv_zame_13 = "True"
+lv_to_stop_13 = "True"
+f_move_motor_7 ()
+lv_motor_13 = gv_left_motor
+lv_forward_13 = gv_left_forward
+lv_deg_13 = 130
+lv_max_power_13 = 30
+lv_acceleration_13 = "True"
+lv_zame_13 = "True"
+lv_to_stop_13 = "True"
+f_move_motor_7 ()
+lv_power_1 = 40
+f_movement_init_1 ()
+f_read_percent_1 ()
+gv_p = lv_percent_5
+While gv_p > 23
+f_read_percent_1 ()
+gv_p = lv_percent_5
+lv_a_8 = 90
+f_ultra_line_1 ()
+EndWhile
+EndIf
 lv_base_power_14 = 40
 lv_min_power_14 = 0
 lv_deg_14 = 35
@@ -324,6 +365,7 @@ gv_fire_count = gv_fire_count + 1
 Thread.Run = f_kick_water_0
 ElseIf gv_chem = "False" And gv_r > 15 Then
 gv_brown = "True"
+gv_chem = "True"
 gv_object = "chem"
 f_take_chem_on_right_0 ()
 EndIf
@@ -448,7 +490,7 @@ EndIf
 EndIf
 If gv_red = "False" Then
 gv_r = Sensor.ReadRawValue ( gv_left_sensor , 0 )
-If gv_r > 70 Then
+If gv_r > 60 Then
 Sensor.SetMode ( gv_left_sensor , 2 )
 lv_time_2 = 200
 f_delay_1 ()
@@ -659,12 +701,14 @@ gv_fire_count = gv_fire_count + 1
 f_kick_water_0 ()
 EndIf
 ElseIf gv_chem = "False" Then
-Sensor.SetMode ( gv_right_sensor , 4 )
+Sensor.SetMode ( gv_right_sensor , 2 )
 lv_time_2 = 200
 f_delay_1 ()
-gv_w = Sensor.ReadRawValue ( gv_right_sensor , 0 )
+gv_g = Sensor.ReadRawValue ( gv_right_sensor , 0 )
 Sensor.SetMode ( gv_right_sensor , 1 )
-If gv_w > 45 Then
+LCD.Clear ()
+LCD.Text ( 1 , 0 , 0 , 2 , gv_g )
+If gv_g > 15 Then
 gv_yellow = "True"
 gv_object = "chem"
 gv_chem = "True"
@@ -761,7 +805,7 @@ lv_deg_12 = 100
 lv_power_12 = 30
 f_forward_deg_2 ()
 f_reset_0 ()
-gv_a = Math.Max ( Sensor.ReadRawValue ( gv_ultrasonic , 0 ) , 95 )
+gv_a = 95
 While MotorA.GetTacho () * gv_left_forward < 300
 lv_a_8 = gv_a
 f_ultra_line_1 ()
@@ -786,7 +830,32 @@ ElseIf gv_chem = "False" Then
 lv_time_2 = 300
 f_delay_1 ()
 gv_ultra = Sensor.ReadRawValue ( gv_ultrasonic , 0 )
-If gv_ultra < 70 Then
+gv_ch = "False"
+If gv_ultra < 75 Then
+gv_ch = "True"
+Else
+lv_motor_13 = gv_right_motor
+lv_forward_13 = gv_right_forward * - 1
+lv_deg_13 = 20
+lv_max_power_13 = 20
+lv_acceleration_13 = "False"
+lv_zame_13 = "False"
+lv_to_stop_13 = "True"
+f_move_motor_7 ()
+lv_time_2 = 300
+f_delay_1 ()
+gv_ultra = Sensor.ReadRawValue ( gv_ultrasonic , 0 )
+Motor.Start ( gv_right_motor , gv_right_forward * 30 )
+lv_time_2 = 500
+f_delay_1 ()
+Motor.Stop ( gv_right_motor , "True" )
+If gv_ultra < 75 Then
+gv_ch = "True"
+EndIf
+EndIf
+LCD.Clear ()
+LCD.Text ( 1 , 0 , 0 , 2 , gv_ultra )
+If gv_ultra < 75 Then
 gv_green = "True"
 gv_object = "chem"
 gv_chem = "True"
@@ -853,9 +922,11 @@ lv_deg_10 = 120
 lv_coef_10 = 1
 f_speedup_4 ()
 If gv_green = "False" Then
-lv_deg_12 = 415 - 120 - 120
-lv_power_12 = 30
-f_forward_deg_2 ()
+f_reset_0 ()
+While MotorA.GetTacho () * gv_left_forward < 415 - 120 - 120
+lv_a_8 = 93
+f_ultra_line_1 ()
+EndWhile
 lv_base_power_14 = 30
 lv_min_power_14 = 15
 lv_deg_14 = 120
@@ -866,7 +937,7 @@ lv_time_2 = 200
 f_delay_1 ()
 gv_r = Sensor.ReadRawValue ( gv_left_sensor , 0 )
 gv_object = "none"
-If gv_r > 80 Then
+If gv_r > 60 Then
 Sensor.SetMode ( gv_left_sensor , 2 )
 lv_time_2 = 200
 f_delay_1 ()
@@ -909,67 +980,8 @@ If gv_ultra < 90 Then
 gv_green = "True"
 gv_object = "chem"
 gv_chem = "True"
-lv_base_power_10 = 30
-lv_min_power_10 = 20
-lv_deg_10 = 50
-lv_coef_10 = - 1
-f_speedup_4 ()
-lv_base_power_14 = 30
-lv_min_power_14 = 20
-lv_deg_14 = 50
-lv_coef_14 = - 1
-f_zame_4 ()
-MotorB.OffAndBrake ()
-lv_motor_13 = gv_left_motor
-lv_forward_13 = gv_left_forward * - 1
-lv_deg_13 = 100
-lv_max_power_13 = 30
-lv_acceleration_13 = "False"
-lv_zame_13 = "True"
-lv_to_stop_13 = "True"
-f_move_motor_7 ()
-Motor.Move ( gv_grabber_motor , 50 , 170 , "True" )
-lv_base_power_10 = 30
-lv_min_power_10 = 20
-lv_deg_10 = 50
-lv_coef_10 = 1
-f_speedup_4 ()
-lv_base_power_14 = 30
-lv_min_power_14 = 20
-lv_deg_14 = 50
-lv_coef_14 = 1
-f_zame_4 ()
-f_stop_0 ()
-Motor.Move ( gv_grabber_motor , 50 , 110 , "True" )
-lv_base_power_10 = 30
-lv_min_power_10 = 20
-lv_deg_10 = 55
-lv_coef_10 = - 1
-f_speedup_4 ()
-lv_base_power_14 = 30
-lv_min_power_14 = 15
-lv_deg_14 = 55
-lv_coef_14 = - 1
-f_zame_4 ()
-f_stop_0 ()
-lv_time_2 = 300
-f_delay_1 ()
-lv_motor_13 = gv_left_motor
-lv_forward_13 = gv_left_forward
-lv_deg_13 = 105
-lv_max_power_13 = 30
-lv_acceleration_13 = "True"
-lv_zame_13 = "True"
-lv_to_stop_13 = "True"
-f_move_motor_7 ()
-f_stop_0 ()
-lv_time_2 = 300
-f_delay_1 ()
-lv_base_power_10 = 30
-lv_min_power_10 = 20
-lv_deg_10 = 110
-lv_coef_10 = 1
-f_speedup_4 ()
+lv_finish_forward_15 = "True"
+f_take_chem_on_left_1 ()
 EndIf
 EndIf
 If gv_object = "none" Or gv_object = "man" Then
@@ -1005,7 +1017,7 @@ f_stop_0 ()
 lv_time_2 = 200
 f_delay_1 ()
 gv_r = Sensor.ReadRawValue ( gv_left_sensor , 0 )
-If gv_r > 60 Then
+If gv_r > 50 Then
 Sensor.SetMode ( gv_left_sensor , 2 )
 lv_time_2 = 200
 f_delay_1 ()
@@ -1102,9 +1114,8 @@ lv_deg_10 = 100
 lv_coef_10 = 1
 f_speedup_4 ()
 f_reset_0 ()
-gv_a = Sensor.ReadRawValue ( gv_ultrasonic , 0 )
-While MotorA.GetTacho () * gv_left_forward < 510 - 200
-lv_a_8 = gv_a
+While MotorA.GetTacho () * gv_left_forward < 520 - 200
+lv_a_8 = 93
 f_ultra_line_1 ()
 EndWhile
 lv_base_power_14 = 40
@@ -1117,7 +1128,7 @@ gv_object = "none"
 lv_time_2 = 200
 f_delay_1 ()
 gv_r = Sensor.ReadRawValue ( gv_left_sensor , 0 )
-If gv_r > 60 Then
+If gv_r > 50 Then
 Sensor.SetMode ( gv_left_sensor , 2 )
 lv_time_2 = 200
 f_delay_1 ()
@@ -1193,9 +1204,10 @@ lv_coef_10 = - 1
 f_speedup_4 ()
 lv_base_power_14 = 30
 lv_min_power_14 = 30
-lv_deg_14 = 40
+lv_deg_14 = 50
 lv_coef_14 = - 1
 f_zame_4 ()
+MotorA.OffAndBrake ()
 Else
 lv_base_power_10 = 20
 lv_min_power_10 = 20
@@ -1206,7 +1218,6 @@ f_stop_0 ()
 lv_time_2 = 200
 f_delay_1 ()
 EndIf
-MotorA.OffAndBrake ()
 lv_motor_13 = gv_right_motor
 lv_forward_13 = gv_right_forward * - 1
 lv_deg_13 = 360
@@ -1393,7 +1404,7 @@ f_zame_4 ()
 f_stop_0 ()
 lv_motor_13 = gv_left_motor
 lv_forward_13 = gv_left_forward
-lv_deg_13 = 210
+lv_deg_13 = 200
 lv_max_power_13 = 30
 lv_acceleration_13 = "True"
 lv_zame_13 = "True"
@@ -1662,7 +1673,7 @@ lv_power_12 = 30
 f_forward_deg_2 ()
 f_reset_0 ()
 While MotorA.GetTacho () * gv_left_forward < 600
-lv_a_8 = 471
+lv_a_8 = 480
 f_ultra_line_1 ()
 EndWhile
 f_stop_0 ()
@@ -1743,7 +1754,7 @@ EndWhile
 f_stop_0 ()
 lv_motor_13 = gv_right_motor
 lv_forward_13 = gv_right_forward
-lv_deg_13 = 380
+lv_deg_13 = 390
 lv_max_power_13 = 30
 lv_acceleration_13 = "True"
 lv_zame_13 = "True"
@@ -1927,7 +1938,7 @@ Time.Reset1 ()
 While lv_m_13 < lv_acceleration_deg_13
 If Time.Get1 () > 700 And lv_m_13 < 20 Then
 f_beep_0 ()
-lv_min_power_13 = lv_min_power_13 + 1
+lv_min_power_13 = lv_min_power_13 + 2
 Time.Reset1 ()
 EndIf
 lv_p_13 = lv_m_13 / lv_acceleration_deg_13
@@ -1976,76 +1987,62 @@ EndSub
 Sub f_take_chem_on_left_1
 lv_base_power_10 = 30
 lv_min_power_10 = 20
-lv_deg_10 = 50
+lv_deg_10 = 80
 lv_coef_10 = - 1
 f_speedup_4 ()
 lv_base_power_14 = 30
 lv_min_power_14 = 20
-lv_deg_14 = 50
+lv_deg_14 = 80
 lv_coef_14 = - 1
 f_zame_4 ()
-MotorB.OffAndBrake ()
-lv_motor_13 = gv_left_motor
-lv_forward_13 = gv_left_forward * - 1
-lv_deg_13 = 100
-lv_max_power_13 = 30
-lv_acceleration_13 = "False"
-lv_zame_13 = "True"
-lv_to_stop_13 = "True"
-f_move_motor_7 ()
+f_stop_0 ()
 Motor.Move ( gv_grabber_motor , 50 , 170 , "True" )
-lv_base_power_10 = 30
-lv_min_power_10 = 20
-lv_deg_10 = 50
-lv_coef_10 = 1
-f_speedup_4 ()
-lv_base_power_14 = 30
-lv_min_power_14 = 20
-lv_deg_14 = 50
-lv_coef_14 = 1
-f_zame_4 ()
-f_stop_0 ()
-Motor.Move ( gv_grabber_motor , 50 , 110 , "True" )
-lv_base_power_10 = 30
-lv_min_power_10 = 20
-lv_deg_10 = 60
-lv_coef_10 = - 1
-f_speedup_4 ()
-lv_base_power_14 = 30
-lv_min_power_14 = 15
-lv_deg_14 = 60
-lv_coef_14 = - 1
-f_zame_4 ()
-f_stop_0 ()
-lv_time_2 = 300
-f_delay_1 ()
-lv_motor_13 = gv_left_motor
-lv_forward_13 = gv_left_forward
-lv_deg_13 = 85
-lv_max_power_13 = 30
-lv_acceleration_13 = "True"
-lv_zame_13 = "True"
+lv_motor_13 = gv_right_motor
+lv_forward_13 = gv_right_forward
+lv_deg_13 = 130
+lv_max_power_13 = 20
+lv_acceleration_13 = "False"
+lv_zame_13 = "False"
 lv_to_stop_13 = "True"
 f_move_motor_7 ()
-f_stop_0 ()
-lv_time_2 = 300
+Motor.Move ( gv_grabber_motor , 50 , 110 , "True" )
+lv_motor_13 = gv_right_motor
+lv_forward_13 = gv_right_forward * - 1
+lv_deg_13 = 125
+lv_max_power_13 = 20
+lv_acceleration_13 = "False"
+lv_zame_13 = "False"
+lv_to_stop_13 = "True"
+f_move_motor_7 ()
+lv_time_2 = 200
 f_delay_1 ()
 If lv_finish_forward_15 = "True" Then
 lv_base_power_10 = 30
 lv_min_power_10 = 20
-lv_deg_10 = 100
+lv_deg_10 = 160
 lv_coef_10 = 1
 f_speedup_4 ()
+Else
+lv_base_power_10 = 30
+lv_min_power_10 = 20
+lv_deg_10 = 30
+lv_coef_10 = 1
+f_speedup_4 ()
+lv_base_power_14 = 30
+lv_min_power_14 = 20
+lv_deg_14 = 30
+lv_coef_14 = 1
+f_zame_4 ()
+f_stop_0 ()
 EndIf
-lv_chem_15 = "True"
 EndSub
 Sub f_open_cubes_1
 Motor.Start ( gv_water_motor , 50 * lv_coef_16 )
-Program.Delay ( 700 )
+Program.Delay ( 500 )
 Motor.Stop ( gv_water_motor , "True" )
 EndSub
 Sub f_close_cubes_1
-Motor.Move ( gv_water_motor , - 50 * lv_coef_17 , 90 , "True" )
+Motor.Move ( gv_water_motor , - 30 * lv_coef_17 , 90 , "True" )
 EndSub
 Sub f_deliver_long_1
 If lv_is_inverted_18 = "False" Then
@@ -2090,6 +2087,12 @@ lv_to_stop_13 = "True"
 f_move_motor_7 ()
 gv_cubes_count = 1
 Else
+lv_base_power_10 = 20
+lv_min_power_10 = 20
+lv_deg_10 = 30
+lv_coef_10 = 1
+f_speedup_4 ()
+f_stop_0 ()
 lv_motor_13 = lv_mot_18
 lv_forward_13 = lv_forward_18
 lv_deg_13 = 360
@@ -2100,7 +2103,7 @@ lv_to_stop_13 = "True"
 f_move_motor_7 ()
 lv_power_1 = 30
 f_movement_init_1 ()
-lv_time_2 = 700
+lv_time_2 = 300
 f_delay_1 ()
 f_stop_0 ()
 lv_coef_16 = lv_coef_18
@@ -2124,6 +2127,11 @@ lv_acceleration_13 = "True"
 lv_zame_13 = "True"
 lv_to_stop_13 = "True"
 f_move_motor_7 ()
+lv_base_power_10 = 20
+lv_min_power_10 = 20
+lv_deg_10 = 30
+lv_coef_10 = - 1
+f_speedup_4 ()
 gv_cubes_count = 0
 EndIf
 EndSub
@@ -2139,32 +2147,26 @@ f_open_cubes_1 ()
 If gv_cubes_count = 2 Then
 lv_base_power_10 = 30
 lv_min_power_10 = 30
-lv_deg_10 = 40
+lv_deg_10 = 45
 lv_coef_10 = - 1
 f_speedup_4 ()
 f_stop_0 ()
 lv_coef_17 = lv_coef_19
 f_close_cubes_1 ()
-lv_base_power_10 = 30
-lv_min_power_10 = 30
-lv_deg_10 = 100
-lv_coef_10 = - 1
-f_speedup_4 ()
 gv_cubes_count = 1
-lv_minus_deg_19 = 40
+lv_minus_deg_19 = 45
 EndIf
+f_stop_0 ()
+gv_cubes_count = gv_cubes_count - 1
 EndSub
 Sub f_move_to_next_zone_1
-lv_deg_20 = 180 - lv_minus_deg_20
-f_reset_0 ()
-lv_power_1 = - 30
-f_movement_init_1 ()
-f_read_percent_1 ()
-lv_p_20 = lv_percent_5
-While MotorA.GetTacho () * gv_left_forward < lv_deg_20 Or lv_p_20 > 20
-f_read_percent_1 ()
-lv_p_20 = lv_percent_5
-EndWhile
+f_stop_0 ()
+lv_deg_20 = 210 - lv_minus_deg_20
+lv_base_power_10 = 20
+lv_min_power_10 = 20
+lv_deg_10 = lv_deg_20
+lv_coef_10 = - 1
+f_speedup_4 ()
 f_stop_0 ()
 EndSub
 Sub f_deliver_group_4
@@ -2208,13 +2210,13 @@ lv_forward2_23 = lv_forward2_22
 lv_coef_23 = lv_coef_22
 lv_base_power_10 = 50
 lv_min_power_10 = 20
-lv_deg_10 = 100
+lv_deg_10 = 300
 lv_coef_10 = - 1
 f_speedup_4 ()
 Motor.Stop ( lv_motor1_23 , "True" )
 lv_motor_13 = lv_motor2_23
 lv_forward_13 = lv_forward2_23 * - 1
-lv_deg_13 = 340
+lv_deg_13 = 330
 lv_max_power_13 = 50
 lv_acceleration_13 = "False"
 lv_zame_13 = "False"
@@ -2225,25 +2227,26 @@ f_movement_init_1 ()
 lv_time_2 = 1700
 f_delay_1 ()
 f_stop_0 ()
-lv_motor_13 = lv_motor2_23
-lv_forward_13 = lv_forward2_23
-lv_deg_13 = 410
-lv_max_power_13 = 50
-lv_acceleration_13 = "True"
-lv_zame_13 = "True"
-lv_to_stop_13 = "True"
-f_move_motor_7 ()
+Motor.Start ( gv_grabber_motor , - 50 )
+lv_time_2 = 700
+f_delay_1 ()
+Motor.Stop ( gv_grabber_motor , "True" )
+Motor.Start ( lv_motor2_23 , lv_forward2_23 * 30 )
+lv_time_2 = 1500
+f_delay_1 ()
+Motor.Stop ( lv_motor2_23 , "True" )
 f_reset_0 ()
-Motor.Start ( lv_motor1_23 , 80 * lv_forward1_23 )
-Motor.Start ( lv_motor2_23 , 90 * lv_forward2_23 )
-While Motor.GetCount ( lv_motor1_23 ) * lv_forward1_23 < 800
-EndWhile
-Motor.Start ( lv_motor1_23 , 50 * lv_forward1_23 )
+Motor.Start ( lv_motor1_23 , 40 * lv_forward1_23 )
 Motor.Start ( lv_motor2_23 , 50 * lv_forward2_23 )
+While Motor.GetCount ( lv_motor1_23 ) * lv_forward1_23 < 1000
+EndWhile
+Motor.Start ( lv_motor1_23 , 40 * lv_forward1_23 )
+Motor.Start ( lv_motor2_23 , 60 * lv_forward2_23 )
 Program.Delay ( 1200 )
 f_stop_0 ()
 EndSub
 Sub f_take_cubes_1
+Sensor.SetMode ( gv_line , 0 )
 lv_is_inverted_22 = lv_is_inverted_24
 f_get_motors_6 ()
 lv_motor1_24 = lv_motor1_22
@@ -2303,7 +2306,8 @@ lv_deg_14 = 100
 lv_coef_14 = 1
 f_zame_4 ()
 f_stop_0 ()
-Motor.Move ( gv_water_motor , - 50 , 80 , "True" )
+lv_coef_17 = lv_coef_24
+f_close_cubes_1 ()
 lv_motor_13 = lv_motor2_24
 lv_forward_13 = lv_forward2_24 * - 1
 lv_deg_13 = 250
@@ -2352,7 +2356,7 @@ lv_zame_13 = "True"
 lv_to_stop_13 = "True"
 f_move_motor_7 ()
 lv_motor_13 = lv_motor2_25
-lv_forward_13 = lv_forward2_25
+lv_forward_13 = lv_forward2_25 * - 1
 lv_deg_13 = 150
 lv_max_power_13 = 30
 lv_acceleration_13 = "True"

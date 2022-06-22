@@ -316,6 +316,8 @@ lv_power_11 = 40
 f_sync_1 ()
 EndWhile
 f_stop_0 ()
+lv_time_2 = 200
+f_delay_1 ()
 lv_motor_13 = gv_right_motor
 lv_forward_13 = gv_right_forward * - 1
 lv_deg_13 = 230
@@ -682,7 +684,7 @@ f_stop_0 ()
 lv_time_2 = 200
 f_delay_1 ()
 gv_r = Sensor.ReadRawValue ( gv_right_sensor , 0 )
-If gv_r > 160 Then
+If gv_r > 130 Then
 ElseIf gv_r > 80 Then
 Sensor.SetMode ( gv_right_sensor , 2 )
 lv_time_2 = 200
@@ -1938,7 +1940,8 @@ Time.Reset1 ()
 While lv_m_13 < lv_acceleration_deg_13
 If Time.Get1 () > 700 And lv_m_13 < 20 Then
 f_beep_0 ()
-lv_min_power_13 = lv_min_power_13 + 2
+lv_min_power_13 = lv_min_power_13 + 5
+lv_acceleration_deg_13 = lv_acceleration_deg_13 - 10
 Time.Reset1 ()
 EndIf
 lv_p_13 = lv_m_13 / lv_acceleration_deg_13
@@ -2324,14 +2327,25 @@ lv_acceleration_13 = "True"
 lv_zame_13 = "True"
 lv_to_stop_13 = "True"
 f_move_motor_7 ()
+f_reset_0 ()
 lv_power_1 = - 30
 f_movement_init_1 ()
+If lv_is_inverted_24 = "False" Then
 f_read_percent_1 ()
 lv_p_24 = lv_percent_5
-While lv_p_24 > 20
+While Math.Abs ( MotorA.GetTacho () ) < 20 Or lv_p_24 > 20
 f_read_percent_1 ()
 lv_p_24 = lv_percent_5
 EndWhile
+Else
+Sensor.SetMode ( gv_line , 4 )
+Sensor.Wait ( gv_line )
+lv_rgb_24 = Sensor.ReadRaw ( gv_line , 3 )
+While lv_rgb_24 [ 1 ] > 50
+lv_rgb_24 = Sensor.ReadRaw ( gv_line , 3 )
+EndWhile
+Sensor.SetMode ( gv_line , 0 )
+EndIf
 f_stop_0 ()
 EndSub
 Sub f_finish_after_deliveries_1

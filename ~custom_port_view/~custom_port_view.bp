@@ -2,7 +2,6 @@ gv_line = 0
 gv_line_max = 0
 gv_line_min = 0
 gv_right_sensor = 0
-gv_l = 0
 gv_r = 0
 gv_g = 0
 gv_b = 0
@@ -14,15 +13,13 @@ gv_right_text = ""
 gv_line = 1
 gv_line_max = 40
 gv_line_min = 5
-gv_right_sensor = 3
-Sensor.SetMode ( gv_line , 0 )
-Sensor.SetMode ( gv_right_sensor , 5 )
+gv_right_sensor = 1
+Sensor.SetMode ( gv_line , 4 )
 While "True"
-gv_l = Math.floor ( ( Sensor.ReadPercent ( gv_line ) - gv_line_min ) / ( gv_line_max - gv_line_min ) * 100 )
 gv_r = 0
 gv_g = 0
 gv_b = 0
-Sensor3.Raw3 ( gv_r , gv_g , gv_b )
+Sensor1.Raw3 ( gv_r , gv_g , gv_b )
 gv_right_red = Text.Append ( gv_r , "" )
 gv_right_green = Text.Append ( gv_g , "" )
 gv_right_blue = Text.Append ( gv_b , "" )
@@ -30,7 +27,6 @@ gv_right_sum = Text.Append ( gv_r + gv_g + gv_b , "" )
 gv_right_text = gv_right_red + " " + gv_right_green + " " + gv_right_blue + " " + gv_right_sum
 LCD.StopUpdate ()
 LCD.Clear ()
-LCD.Text ( 1 , 0 , 0 , 2 , gv_l )
 LCD.Text ( 1 , 0 , 40 , 1 , gv_right_text )
 LCD.Update ()
 EndWhile

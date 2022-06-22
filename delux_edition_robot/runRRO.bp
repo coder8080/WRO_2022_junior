@@ -209,7 +209,8 @@ Function move_motor(in string motor, in number forward, in number deg, in number
       ' Защита от застревания
       If Time.Get1() > 700 And m < 20 Then
         beep()
-        min_power = min_power + 2
+        min_power = min_power + 5
+        acceleration_deg = acceleration_deg - 10
         Time.Reset1()
       EndIf
       p = m / acceleration_deg
@@ -515,11 +516,22 @@ Function take_cubes(in string is_inverted)
   close_cubes(coef)
   move_motor(motor2, forward2 * -1, 250, 30, "True", "True", "True")
   move_motor(motor1, forward1 * -1, 250, 30, "True", "True", "True")
+  reset()
   movement_init(-30)
-  read_percent(p)
-  While p > 20
+  If is_inverted = "False" Then
     read_percent(p)
-  EndWhile
+    While Math.Abs(MotorA.GetTacho()) < 20 Or p > 20
+      read_percent(p)
+    EndWhile
+  Else
+    Sensor.SetMode(@line, 4)
+    Sensor.Wait(@line)
+    rgb = Sensor.ReadRaw(@line, 3)
+    While rgb[1] > 50
+          rgb = Sensor.ReadRaw(@line, 3)
+    EndWhile
+    Sensor.SetMode(@line, 0)
+  EndIf
   stop()
 EndFunction
 
@@ -596,12 +608,12 @@ Sub main
     speedup(30, 20, 70, 1)
     MotorA.OffAndBrake()
     move_motor(right_motor, right_forward, 360, 30, "False", "True", "True")
-      movement_init(40)
-  read_percent(p)
-  While p > 23
+    movement_init(40)
     read_percent(p)
-    ultra_line(a)
-  EndWhile
+    While p > 23
+      read_percent(p)
+      ultra_line(a)
+    EndWhile
   Else
     beep()
     MotorA.StartPower(80 * left_forward)
@@ -630,14 +642,15 @@ Sub main
       sync(40)
     EndWhile
     stop()
+    delay(200)
     move_motor(right_motor, right_forward * -1, 230, 30, "True", "True", "True")
     move_motor(left_motor, left_forward, 130, 30, "True", "True", "True")
-      movement_init(40)
-  read_percent(p)
-  While p > 23
+    movement_init(40)
     read_percent(p)
-    ultra_line(90)
-  EndWhile
+    While p > 23
+      read_percent(p)
+      ultra_line(90)
+    EndWhile
   EndIf
   
   zame(40, 0, 35, 1)
@@ -860,7 +873,7 @@ Sub main
   ' Жёлтая зона, первый элемент
   delay(200)
   r = Sensor.ReadRawValue(right_sensor, 0)
-  If r > 160 Then
+  If r > 130 Then
   ElseIf r > 80 Then
     Sensor.SetMode(right_sensor, 2)
     delay(200)
@@ -1511,13 +1524,12 @@ Sub main
   show_time("True")
 EndSub
 
-'Time.Reset1()
-'red_man = "True"
-'white_man = "True"
-'take_cubes("False")
-'deliver_group(brown_man, red_man, "True", "False")
-'deliver_group(white_man, yellow_man, "True", "False")
-'deliver_group(blue_man, green_man, "False", "False")
-'stop()
-'show_time("True")
+'green_man = "True"
+'blue_man = "True"
+''from_protected_to_finish("True")
+'take_cubes("True")
+'deliver_group(blue_man, green_man, "True", "True")
+'deliver_group(white_man, yellow_man, "True", "True")
+'deliver_group(brown_man, red_man, "False", "True")
+'finish_after_deliveries("True")
 main()

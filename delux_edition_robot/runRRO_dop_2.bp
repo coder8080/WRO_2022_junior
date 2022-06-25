@@ -31,6 +31,8 @@ green_man = "False"
 blue_man = "False"
 white_man = "False"
 
+empty_zone = "none"
+
 water_state = 0
 fire_count = 0
 men_count = 0
@@ -620,7 +622,6 @@ EndSub
 Sub main
   start = "left"
   Time.Reset9()
-  ' 97, 95
   a = 90
   Thread.Run = prepare_grabber
   If start = "left" Then
@@ -696,14 +697,14 @@ Sub main
   
   zame(40, 0, 35, 1)
   stop()
-    is_second_brown_chem = "False"
+  is_second_brown_chem = "False"
   
   ' Коричневая зона, первый элемент
   delay(300)
   r = Sensor.ReadRawValue(right_sensor, 0)
   LCD.Clear()
   LCD.Text(1, 0, 0, 2, r)
-  obejct = "none"
+  object = "none"
   If r > 60 Then
     Sensor.SetMode(right_sensor, 2)
     delay(200)
@@ -747,7 +748,6 @@ Sub main
     stop()
     delay(200)
     r = Sensor.ReadRawValue(right_sensor, 0)
-    object = "none"
     If r > 80 Then
       Sensor.SetMode(right_sensor, 2)
       delay(200)
@@ -777,6 +777,8 @@ Sub main
       object = "chem"
       is_second_brown_chem = "True"
       take_chem_on_right()
+    ElseIf object = "none" Then
+      empty_zone = "brown"
     EndIf
     movement_init(40)
   Else
@@ -786,7 +788,7 @@ Sub main
   EndIf
   reset()
   'a = 100
-  'a = 96
+  'a = 96, 93
   a = 93
   If is_second_brown_chem = "True" Then
     a = 90
@@ -806,7 +808,7 @@ Sub main
   ' Красная зона, справа
   r = Sensor.ReadRawValue(right_sensor, 0)
   object = "none"
-  If r > 80 Then
+  If r > 60 Then
     Sensor.SetMode(right_sensor, 2)
     delay(200)
     g = Sensor.ReadRawValue(right_sensor, 0)
@@ -883,7 +885,11 @@ Sub main
         object = "L: chem"
         chem = "True"
         take_left = "True"
+      Else
+        empty_zone = "red"
       EndIf
+    Else
+      empty_zone = "red"
     EndIf
   EndIf
   
@@ -931,7 +937,7 @@ Sub main
   'move_motor(right_motor, right_forward * -1, 355, 30, "False", "False", "True")
   ' 100, 125
   'speedup(20, 20, 120, -1)
-  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 100, "True")
+  Motor.MoveSync(motors, left_forward * -20, right_forward * -20, 110, "True")
   stop()
   move_motor(right_motor, right_forward * -1, 355, 20, "False", "False", "True")
   movement_init(-40)
@@ -940,6 +946,9 @@ Sub main
   If is_fire = "True" Then
     kick_water()
   EndIf
+  LCD.Clear()
+  LCD.Text(1, 0, 0, 2, empty_zone)
+  'delay(1000)
   speedup(40, 20, 120, 1)
   forward_deg(425 - 240, 40)
   zame(40, 20, 120, 1)
@@ -971,13 +980,13 @@ Sub main
   ElseIf chem = "False" Then
     Sensor.SetMode(right_sensor, 4)
     move_motor(left_motor, left_forward * -1, 20, 20, "False", "False", "True")
-    delay(200)
+    delay(300)
     w = Sensor.ReadRawValue(right_sensor, 0)
     Sensor.SetMode(right_sensor, 1)
     move_motor(left_motor, left_forward, 20, 20, "False", "False", "True")
     LCD.Clear()
     LCD.Text(1, 0, 0, 2, w)
-    If w > 40 Then
+    If w > 33 Then
       ' Химикат
       beep()
       yellow = "True"
@@ -993,12 +1002,12 @@ Sub main
   '' 255
   'move_motor(left_motor, left_forward, 260, 30, "True", "True", "True")
   ' 260 260
-  move_motor(right_motor, right_forward, 265, 20, "False", "False", "True")
+  move_motor(right_motor, right_forward, 260, 20, "False", "False", "True")
   delay(200)
-  move_motor(left_motor, left_forward, 265, 20, "False", "False", "True")
+  move_motor(left_motor, left_forward, 260, 20, "False", "False", "True")
   stop()
   delay(500)
-  
+  is_second_yellow_chem = "False"
   If yellow = "False" Then
     'zame(30, 20, 175, 1)
     ' 85, 90; 80, 90; 80, 80
@@ -1008,7 +1017,6 @@ Sub main
     
     ' Жёлтая зона, второй элемент
     delay(200)
-    object = "none"
     r = Sensor.ReadRawValue(left_sensor, 0)
     LCD.Clear()
     LCD.Text(1, 0, 0, 2, r)
@@ -1042,8 +1050,13 @@ Sub main
         yellow = "True"
         object = "chem"
         chem = "True"
+        is_second_yellow_chem = "True"
         take_chem_on_left("True")
+      ElseIf object = "none" Then
+        empty_zone = "yellow"
       EndIf
+    ElseIf object = "none" Then
+      empty_zone = "yellow"
     EndIf
   Else
     forward_deg(165, 30)
@@ -1053,7 +1066,12 @@ Sub main
   ' 103, 95
   'a = Math.Max(Sensor.ReadRawValue(ultrasonic, 0), 95)
   'a = 95
-  a = Sensor.ReadRawValue(ultrasonic, 0)
+  If is_second_yellow_chem = "True" Then
+    a = Sensor.ReadRawValue(ultrasonic, 0) - 1
+  Else
+    a = Sensor.ReadRawValue(ultrasonic, 0) + 5
+  EndIf
+  'a = 107
   While MotorA.GetTacho() * left_forward < 300
     ultra_line(a)
   EndWhile
@@ -1150,7 +1168,6 @@ Sub main
   
   ' Зелёная зона, второй элемент
   delay(200)
-  object = "none"
   r = Sensor.ReadRawValue(left_sensor, 0)
   If r > 50 Then
     Sensor.SetMode(left_sensor, 2)
@@ -1207,7 +1224,11 @@ Sub main
       'stop()
       'delay(300)
       'speedup(30, 20, 110, 1)
+    ElseIf object = "none" Then
+      empty_zone = "green"
     EndIf
+  ElseIf object = "none" Then
+    empty_zone = "green"
   EndIf
   If object = "none" Or object = "man" Then
     speedup(30, 20, 80, 1)
@@ -1323,13 +1344,15 @@ Sub main
     Else
       delay(300)
       ultra = Sensor.ReadRawValue(ultrasonic, 0)
-      If ultra < 80 Then
+      If ultra < 80 And chem = "False" Then
         ' Химикат
         blue = "True"
         chem = "True"
         object = "chem"
-        is_second_blue_object_chem = "Treu"
+        is_second_blue_object_chem = "True"
         take_chem_on_left("False")
+      ElseIf object = "none" Then
+        empty_zone = "blue"
       EndIf
     EndIf
   EndIf
@@ -1337,7 +1360,8 @@ Sub main
   t = men_count + " " + fire_count + " " + chem
   LCD.Clear()
   LCD.Text(1, 0, 0, 2, t)
-
+  LCD.Text(1, 0, 40, 2, empty_zone)
+  
   ' Вычисляю объект в белой зоне
   white_object = "none"
   If men_count < 2 Then
@@ -1353,6 +1377,8 @@ Sub main
     white = "True"
     white_man = "True"
     men_count = men_count + 1
+  ElseIf white_object = "none" Then
+    empty_zone = "white"
   EndIf
   
   ' Если нужно выбросить воду и/или взять химикат, еду в белую зону
@@ -1395,7 +1421,8 @@ Sub main
     While MotorA.GetTacho() * left_forward < 130
       sync(30)
     EndWhile
-    While Sensor.ReadRawValue(line, 0) <> 6
+    ' 6
+    While Sensor.ReadRawValue(line, 0) <> 4
       sync(30)
     EndWhile
     
@@ -1552,13 +1579,15 @@ Sub main
     EndIf
     
     ' Доезд до защищённой зоны
-    forward_deg(200, 30)
-    reset()
-    While MotorA.GetTacho() * left_forward < 600
-      ' 471
-      ultra_line(480)
-    EndWhile
-    stop()
+    forward_deg(520, 30)
+    Motor.MoveSync(motors, left_forward * 20, right_forward * -20, 370, "True")
+    'forward_deg(200, 30)
+    'reset()
+    'While MotorA.GetTacho() * left_forward < 600
+    '' 471
+    'ultra_line(480)
+    'EndWhile
+    'stop()
   Else
     ' Если в белую зону ехать не нужно
     If is_on_second_blue = "False" Then
@@ -1609,40 +1638,153 @@ Sub main
       line_slow(-100)
     EndWhile
     stop()
-    ' 380
-    move_motor(right_motor, right_forward, 390, 30, "True", "True", "True")
-    speedup(30, 20, 42, 1)
-    zame(30, 20, 42, 1)
+    delay(200)
+    speedup(20, 20, 50, -1)
+    stop()
+    delay(200)
+    move_motor(left_motor, left_forward, 360, 30, "False", "False", "True")
+    'stop()
+    '' 380
+    'move_motor(right_motor, right_forward, 390, 30, "True", "True", "True")
+    'speedup(30, 20, 42, 1)
+    'zame(30, 20, 42, 1)
+    'stop()
+  EndIf
+  Sensor.SetMode(line, 0)
+  If empty_zone = "brown" Or empty_zone = "red" Then
+    move_motor(right_motor, right_forward * -1, 360, 30, "False", "False", "True")
+    movement_init(-40)
+    delay(3000)
+    stop()
+    move_motor(right_motor, right_forward, 190, 40, "True", "False", "True")
+    move_motor(left_motor, left_forward * -1, 180, 40, "False", "False", "True")
+    MotorA.StartSpeed(40 * left_forward)
+    MotorB.StartSpeed(45 * right_forward)
+    reset()
+    If empty_zone = "brown" Then
+      While MotorA.GetTacho() * left_forward < 650
+      EndWhile
+      stop()
+      Motor.Move(grabber_motor, -50, 120, "True")
+      speedup(30, 30, 650, -1)
+      stop()
+    Else
+      While MotorA.GetTacho() * left_forward < 1250
+      EndWhile
+      stop()
+      Motor.Move(grabber_motor, -50, 120, "True")
+      speedup(30, 30, 1250, -1)
+      stop()
+    EndIf
+    prepare_grabber()
+    move_motor(right_motor, right_forward * -1, 180, 30, "False", "False", "True")
+    move_motor(left_motor, left_forward, 30, 40, "False", "False", "True")
+    MotorB.StartSpeed(-30)
+    delay(2000)
+    stop()
+    movement_init(40)
+    delay(3500)
+    stop()
+  ElseIf empty_zone = "green" Or empty_zone = "blue" Then
+    move_motor(left_motor, left_forward * -1, 360, 30, "False", "False", "True")
+    movement_init(-40)
+    delay(3000)
+    stop()
+    speedup(20, 20, 110, 1)
+    stop()
+    move_motor(left_motor, left_forward, 365, 20, "False", "False", "True")
+    If empty_zone = "green" Then
+      speedup(35, 35, 1250, 1)
+      stop()
+      Motor.Move(grabber_motor, -50, 120, "True")
+      speedup(35, 35, 1250, -1)
+      stop()
+    Else
+      speedup(25, 25, 650, 1)
+      stop()
+      Motor.Move(grabber_motor, -50, 120, "True")
+      speedup(25, 25, 650, -1)
+      stop()
+    EndIf
+    prepare_grabber()
+    move_motor(right_motor, right_forward * -1, 360, 30, "False", "False", "True")
+    movement_init(40)
+    delay(1000)
+    stop()
+  ElseIf empty_zone = "white" Then
+    stop()
+    speedup(25, 25, 650, 1)
+    stop()
+    Motor.Move(grabber_motor, -50, 120, "True")
+    speedup(25, 25, 650, -1)
+    stop()
+    prepare_grabber()
+    
+    move_motor(right_motor, right_forward * -1, 360, 30, "False", "False", "True")
+    movement_init(40)
+    delay(2000)
+    stop()
+  ElseIf empty_zone = "yellow" Then
+    stop()
+    speedup(25, 25, 1250, 1)
+    stop()
+    Motor.Move(grabber_motor, -50, 120, "True")
+    speedup(25, 25, 1250, -1)
+    stop()
+    prepare_grabber()
+    
+    move_motor(right_motor, right_forward * -1, 360, 30, "False", "False", "True")
+    movement_init(40)
+    delay(2000)
+    stop()
+  Else
+    prepare_grabber()
+    move_motor(right_motor, right_forward * -1, 360, 30, "False", "False", "True")
+    movement_init(40)
+    delay(2000)
     stop()
   EndIf
-  ' Выгрузка химиката
-  Motor.Move(grabber_motor, -50, 120, "True")
+  stop()
+  speedup(30, 30, 150, -1)
+  stop()
+  move_motor(left_motor, left_forward, 325, 40, "False", "False", "True")
+  MotorA.StartPower(50 * left_forward)
+  MotorB.StartPower(60 * right_forward)
+  delay(4000)
+  take_cubes("False")
+  deliver_group(brown_man, red_man, "True", "False")
+  deliver_group(white_man, yellow_man, "True", "False")
+  deliver_group(blue_man, green_man, "False", "False")
+  finish_after_deliveries("False")
   
-  If start = "left" Then
-    from_protected_to_finish("False")
-    take_cubes("False")
-    
-    ' Развозы
-    deliver_group(brown_man, red_man, "True", "False")
-    deliver_group(white_man, yellow_man, "True", "False")
-    deliver_group(blue_man, green_man, "False", "False")
-    
-    ' Финиш
-    finish_after_deliveries("False")
-  Else
-    from_protected_to_finish("True")
-    take_cubes("True")
-    deliver_group(blue_man, green_man, "True", "True")
-    deliver_group(white_man, yellow_man, "True", "True")
-    deliver_group(brown_man, red_man, "False", "True")
-    finish_after_deliveries("True")
-  EndIf
+  '' Выгрузка химиката
+  'Motor.Move(grabber_motor, -50, 120, "True")
   
-  ' Небольшой проез вперёд для финиша
+  'If start = "left" Then
+  'from_protected_to_finish("False")
+  'take_cubes("False")
+  
+  '' Развозы
+  'deliver_group(brown_man, red_man, "True", "False")
+  'deliver_group(white_man, yellow_man, "True", "False")
+  'deliver_group(blue_man, green_man, "False", "False")
+  
+  '' Финиш
+  'finish_after_deliveries("False")
+  'Else
+  'from_protected_to_finish("True")
+  'take_cubes("True")
+  'deliver_group(blue_man, green_man, "True", "True")
+  'deliver_group(white_man, yellow_man, "True", "True")
+  'deliver_group(brown_man, red_man, "False", "True")
+  'finish_after_deliveries("True")
+  'EndIf
+  
+  '' Небольшой проез вперёд для финиша
   speedup(20, 20, 20, 1)
   stop()
-  ' Сигнал о завершении и вывод времени на экран
-  beep()
+  '' Сигнал о завершении и вывод времени на экран
+  'beep()
   show_time("True")
 EndSub
 
@@ -1654,5 +1796,10 @@ EndSub
 'deliver_group(white_man, yellow_man, "True", "True")
 'deliver_group(brown_man, red_man, "False", "True")
 'finish_after_deliveries("True")
+
+'MotorA.StartSpeed(-40 * left_forward)
+'MotorB.StartSpeed(-42 * right_forward)
+'While "True"
+'EndWhile
 
 main()

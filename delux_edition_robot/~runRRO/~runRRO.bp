@@ -14,18 +14,30 @@ lv_acceleration_16 = ""
 lv_zame_16 = ""
 lv_to_stop_16 = ""
 lv_time_2 = 0
+lv_percent_7 = 0
+lv_power_1 = 0
+lv_a_10 = 0
+lv_power_14 = 0
 lv_port_5 = 0
 lv_mode_5 = 0
 lv_d_5 = 0
 lv_result_5 = 0
+lv_deg_15 = 0
+lv_power_15 = 0
+lv_finish_forward_18 = ""
 lv_text_6 = ""
-lv_power_1 = 0
-lv_percent_7 = 0
 lv_l_9 = 0
+lv_is_inverted_26 = ""
+lv_is_inverted_27 = ""
+lv_long_24 = ""
+lv_near_24 = ""
+lv_should_move_backward_24 = ""
+lv_is_inverted_24 = ""
+lv_is_inverted_28 = ""
+lv_to_delay_29 = ""
+lv_l_8 = 0
 lv_coef_19 = 0
 lv_coef_20 = 0
-lv_l_8 = 0
-lv_power_14 = 0
 lv_is_inverted_21 = ""
 lv_is_inverted_22 = ""
 lv_minus_deg_22 = 0
@@ -36,10 +48,10 @@ lv_motor2_25 = ""
 lv_forward1_25 = 0
 lv_forward2_25 = 0
 lv_coef_25 = 0
-lv_deg_15 = 0
-lv_power_15 = 0
-gv_c = 0
 gv_p = 0
+gv_r = 0
+gv_g = 0
+gv_w = 0
 lv_cur_8 = 0
 lv_cur_9 = 0
 lv_minus_deg_24 = 0
@@ -93,17 +105,26 @@ gv_men_count = 0
 gv_chem = ""
 gv_take_chem_in_yellow = ""
 gv_cubes_count = 0
-gv_r = 0
-gv_g = 0
 gv_b = 0
-gv_w = 0
-gv_color1 = ""
-gv_color2 = ""
-gv_opened = ""
+gv_start = ""
+gv_a = 0
+gv_is_second_brown_chem = ""
+gv_object = ""
+gv_deg = 0
+gv_take_left = ""
+gv_take_right = ""
+gv_is_fire = ""
 gv_ultra = 0
-gv_d1 = 0
-gv_d2 = 0
-gv_d3 = 0
+gv_col = 0
+gv_is_second_yellow_chem = ""
+gv_ch = ""
+gv_u = 0
+gv_is_first_blue_object_chem = ""
+gv_is_second_blue_object_chem = ""
+gv_is_on_second_blue = ""
+gv_t = ""
+gv_white_object = ""
+gv_minus_deg = 0
 gv_line = 1
 gv_left_sensor = 2
 gv_right_sensor = 3
@@ -142,11 +163,9 @@ gv_r = 0
 gv_g = 0
 gv_b = 0
 gv_w = 0
-gv_color1 = "none"
-gv_color2 = "none"
 Sensor.SetMode ( gv_line , 0 )
-Sensor.SetMode ( gv_left_sensor , 0 )
-Sensor.SetMode ( gv_right_sensor , 0 )
+Sensor.SetMode ( gv_left_sensor , 1 )
+Sensor.SetMode ( gv_right_sensor , 1 )
 Sensor.SetMode ( gv_ultrasonic , 0 )
 If EV3.BatteryVoltage < 8 Then
 f_beep_0 ()
@@ -156,6 +175,44 @@ EndIf
 f_main_0 ()
 Sub f_beep_0
 Speaker.Tone ( 100 , 500 , 200 )
+EndSub
+Sub f_take_chem_on_right_0
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 80
+lv_coef_12 = - 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 80
+lv_coef_17 = - 1
+f_zame_4 ()
+f_stop_0 ()
+Motor.Move ( gv_grabber_motor , 50 , 170 , "True" )
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward
+lv_deg_16 = 130
+lv_max_power_16 = 20
+lv_acceleration_16 = "False"
+lv_zame_16 = "False"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+Motor.Move ( gv_grabber_motor , 50 , 110 , "True" )
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward * - 1
+lv_deg_16 = 125
+lv_max_power_16 = 20
+lv_acceleration_16 = "False"
+lv_zame_16 = "False"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_time_2 = 200
+f_delay_1 ()
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 160
+lv_coef_12 = 1
+f_speedup_4 ()
 EndSub
 Sub f_kick_water_0
 If gv_water_state = 0 Then
@@ -179,208 +236,19 @@ Motor.Stop ( gv_grabber_motor , "True" )
 Motor.Move ( gv_grabber_motor , 50 , 50 , "True" )
 EndSub
 Sub f_main_0
+gv_start = "left"
+Time.Reset9 ()
+gv_a = 90
 Thread.Run = f_prepare_grabber_0
-gv_opened = "none"
+If gv_start = "left" Then
+MotorA.StartPower ( 80 * gv_left_forward )
+MotorB.StartPower ( 85 * gv_right_forward )
 f_reset_0 ()
-MotorB.StartSpeed ( 40 * gv_right_forward )
-MotorA.StartSpeed ( 35 * gv_left_forward )
-While MotorA.GetTacho () * gv_left_forward < 440
-EndWhile
-f_stop_0 ()
-lv_motor_16 = gv_right_motor
-lv_forward_16 = gv_right_forward * - 1
-lv_deg_16 = 180
-lv_max_power_16 = 40
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
-lv_to_stop_16 = "True"
-f_move_motor_7 ()
-lv_motor_16 = gv_left_motor
-lv_forward_16 = gv_left_forward
-lv_deg_16 = 50
-lv_max_power_16 = 40
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
-lv_to_stop_16 = "True"
-f_move_motor_7 ()
-MotorB.StartPower ( - 80 * gv_right_forward )
-lv_time_2 = 2000
-f_delay_1 ()
-f_stop_0 ()
-MotorA.StartPower ( - 80 * gv_left_forward )
-lv_time_2 = 1000
-f_delay_1 ()
-f_stop_0 ()
-lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 140
-lv_coef_12 = 1
-f_speedup_4 ()
-f_stop_0 ()
-lv_time_2 = 500
-f_delay_1 ()
-gv_ultra = Sensor.ReadRawValue ( gv_ultrasonic , 0 )
-If gv_ultra < 250 Then
-gv_opened = "right"
-f_beep_0 ()
-Else
-gv_opened = "left"
-EndIf
-lv_motor_16 = gv_left_motor
-lv_forward_16 = gv_left_forward
-lv_deg_16 = 400
-lv_max_power_16 = 20
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
-lv_to_stop_16 = "True"
-f_move_motor_7 ()
-lv_motor_16 = gv_right_motor
-lv_forward_16 = gv_right_forward
-lv_deg_16 = 400
-lv_max_power_16 = 20
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
-lv_to_stop_16 = "True"
-f_move_motor_7 ()
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = 50
-lv_coef_12 = 1
-f_speedup_4 ()
-f_stop_0 ()
-gv_c = 0
-lv_port_5 = gv_left_sensor
-lv_mode_5 = 0
-lv_d_5 = 200
-f_read_mode_4 ()
-gv_c = lv_result_5
-If gv_c = 4 Then
-gv_color1 = "green"
-ElseIf gv_c = 5 Or gv_c = 6 Then
-gv_color1 = "yellow"
-ElseIf gv_c > 6 And gv_c < 11 Then
-gv_color1 = "red"
-ElseIf gv_c = 2 Or gv_c = 3 Then
-gv_color1 = "blue"
-ElseIf gv_c = 14 Then
-gv_color1 = "white"
-Else
-gv_color1 = "black"
-EndIf
-lv_text_6 = Text.Append ( gv_c , " " ) + gv_color1
-f_text_to_screen_1 ()
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = 410
-lv_coef_12 = 1
-f_speedup_4 ()
-f_stop_0 ()
-lv_port_5 = gv_left_sensor
-lv_mode_5 = 0
-lv_d_5 = 200
-f_read_mode_4 ()
-gv_c = lv_result_5
-If gv_c = 4 Then
-gv_color2 = "green"
-ElseIf gv_c = 5 Or gv_c = 6 Then
-gv_color2 = "yellow"
-ElseIf gv_c > 6 And gv_c < 11 Then
-gv_color2 = "red"
-ElseIf gv_c = 2 Or gv_c = 3 Then
-gv_color2 = "blue"
-ElseIf gv_c = 14 Then
-gv_color2 = "white"
-Else
-gv_color2 = "black"
-EndIf
-lv_text_6 = Text.Append ( gv_c , " " ) + gv_color2
-f_text_to_screen_1 ()
-lv_power_1 = 50
-f_movement_init_1 ()
-lv_time_2 = 2000
-f_delay_1 ()
-f_stop_0 ()
-lv_motor_16 = gv_left_motor
-lv_forward_16 = gv_left_forward * - 1
-lv_deg_16 = 360
-lv_max_power_16 = 30
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
-lv_to_stop_16 = "True"
-f_move_motor_7 ()
-lv_power_1 = - 40
-f_movement_init_1 ()
-lv_time_2 = 500
-f_delay_1 ()
-f_stop_0 ()
-lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 415
-lv_coef_12 = 1
-f_speedup_4 ()
-f_stop_0 ()
-lv_time_2 = 200
-f_delay_1 ()
-lv_motor_16 = gv_left_motor
-lv_forward_16 = gv_left_forward * - 1
-lv_deg_16 = 360
-lv_max_power_16 = 30
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
-lv_to_stop_16 = "True"
-f_move_motor_7 ()
-Motor.Move ( gv_grabber_motor , 50 , 210 , "True" )
-lv_power_1 = - 40
-f_movement_init_1 ()
-lv_time_2 = 1500
-f_delay_1 ()
-f_stop_0 ()
-lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 900
-lv_coef_12 = 1
-f_speedup_4 ()
-f_stop_0 ()
-Motor.Start ( gv_grabber_motor , 30 )
-lv_time_2 = 2000
-f_delay_1 ()
-Motor.Stop ( gv_grabber_motor , "True" )
-If gv_opened = "right" Then
-lv_power_1 = - 40
-f_movement_init_1 ()
-lv_time_2 = 3000
-f_delay_1 ()
-f_stop_0 ()
-lv_motor_16 = gv_left_motor
-lv_forward_16 = gv_left_forward
-lv_deg_16 = 220
-lv_max_power_16 = 20
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
-lv_to_stop_16 = "True"
-f_move_motor_7 ()
-lv_motor_16 = gv_right_motor
-lv_forward_16 = gv_right_forward * - 1
-lv_deg_16 = 160
-lv_max_power_16 = 20
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
-lv_to_stop_16 = "True"
-f_move_motor_7 ()
-lv_power_1 = - 40
-f_movement_init_1 ()
-lv_time_2 = 2000
-f_delay_1 ()
-f_stop_0 ()
-f_reset_0 ()
-MotorA.StartPower ( 60 * gv_left_forward )
-MotorB.StartPower ( 50 * gv_right_forward )
-f_reset_0 ()
-While MotorA.GetTacho () * gv_left_forward < 950
+While MotorB.GetTacho () < 1000
 EndWhile
 f_read_percent_1 ()
 gv_p = lv_percent_7
-While gv_p < 40
+While gv_p < 50
 f_read_percent_1 ()
 gv_p = lv_percent_7
 EndWhile
@@ -388,95 +256,61 @@ While gv_p > 20
 f_read_percent_1 ()
 gv_p = lv_percent_7
 EndWhile
-f_stop_0 ()
-lv_time_2 = 200
-f_delay_1 ()
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = 70
-lv_coef_12 = - 1
-f_speedup_4 ()
-f_stop_0 ()
-lv_time_2 = 200
-f_delay_1 ()
+MotorA.OffAndBrake ()
 lv_motor_16 = gv_right_motor
-lv_forward_16 = gv_right_forward
-lv_deg_16 = 360
-lv_max_power_16 = 20
+lv_forward_16 = gv_right_forward * - 1
+lv_deg_16 = 180
+lv_max_power_16 = 50
+lv_acceleration_16 = "False"
+lv_zame_16 = "False"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward
+lv_deg_16 = 180
+lv_max_power_16 = 50
 lv_acceleration_16 = "False"
 lv_zame_16 = "False"
 lv_to_stop_16 = "True"
 f_move_motor_7 ()
 lv_power_1 = - 50
 f_movement_init_1 ()
-lv_time_2 = 2000
+lv_time_2 = 1000
 f_delay_1 ()
 f_stop_0 ()
-f_read_percent_1 ()
-gv_p = lv_percent_7
-f_reset_0 ()
-lv_power_1 = 30
-f_movement_init_1 ()
-While Motor.GetCount ( gv_left_motor ) * gv_left_forward < 450 Or gv_p > 10
-f_read_percent_1 ()
-gv_p = lv_percent_7
-lv_l_9 = gv_p
-f_line_slow_1 ()
-EndWhile
-f_stop_0 ()
-lv_motor_16 = gv_right_motor
-lv_forward_16 = gv_right_forward
-lv_deg_16 = 375
-lv_max_power_16 = 30
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
-lv_to_stop_16 = "True"
-f_move_motor_7 ()
-lv_base_power_12 = 20
+lv_base_power_12 = 30
 lv_min_power_12 = 20
-lv_deg_12 = 135
+lv_deg_12 = 55
 lv_coef_12 = 1
 f_speedup_4 ()
-f_stop_0 ()
-Else
-f_stop_0 ()
-Motor.Stop ( gv_motors , "True" )
-Motor.MoveSync ( gv_motors , gv_left_forward * - 20 , gv_right_forward * 20 , 375 , "True" )
-lv_power_1 = - 40
-f_movement_init_1 ()
-lv_time_2 = 2000
-f_delay_1 ()
-f_stop_0 ()
+MotorA.OffAndBrake ()
 lv_motor_16 = gv_right_motor
 lv_forward_16 = gv_right_forward
-lv_deg_16 = 220
-lv_max_power_16 = 20
+lv_deg_16 = 360
+lv_max_power_16 = 30
 lv_acceleration_16 = "False"
-lv_zame_16 = "False"
+lv_zame_16 = "True"
 lv_to_stop_16 = "True"
 f_move_motor_7 ()
-lv_motor_16 = gv_left_motor
-lv_forward_16 = gv_left_forward * - 1
-lv_deg_16 = 160
-lv_max_power_16 = 20
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
-lv_to_stop_16 = "True"
-f_move_motor_7 ()
-lv_power_1 = - 40
+lv_power_1 = 40
 f_movement_init_1 ()
-lv_time_2 = 2000
-f_delay_1 ()
-f_stop_0 ()
+f_read_percent_1 ()
+gv_p = lv_percent_7
+While gv_p > 23
+f_read_percent_1 ()
+gv_p = lv_percent_7
+lv_a_10 = gv_a
+f_ultra_line_1 ()
+EndWhile
+Else
+MotorA.StartPower ( 80 * gv_left_forward )
+MotorB.StartPower ( 40 * gv_right_forward )
 f_reset_0 ()
-MotorA.StartPower ( 70 * gv_left_forward )
-MotorB.StartPower ( 80 * gv_right_forward )
-f_reset_0 ()
-While MotorA.GetTacho () * gv_left_forward < 950
+While MotorA.GetTacho () * gv_left_forward < 1000
 EndWhile
 f_read_percent_1 ()
 gv_p = lv_percent_7
-While gv_p < 40
+While gv_p < 50
 f_read_percent_1 ()
 gv_p = lv_percent_7
 EndWhile
@@ -485,64 +319,847 @@ f_read_percent_1 ()
 gv_p = lv_percent_7
 EndWhile
 f_stop_0 ()
+lv_motor_16 = gv_right_motor
+lv_forward_16 = gv_right_forward
+lv_deg_16 = 180
+lv_max_power_16 = 40
+lv_acceleration_16 = "False"
+lv_zame_16 = "Fase"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+Motor.Start ( gv_left_motor , gv_left_forward * - 40 )
+lv_time_2 = 1000
+f_delay_1 ()
+Motor.Stop ( gv_left_motor , "True" )
+lv_power_1 = 40
+f_movement_init_1 ()
+f_reset_0 ()
+While MotorA.GetTacho () * gv_left_forward < 1150
+lv_power_14 = 90
+f_sync_1 ()
+EndWhile
+Time.Reset1 ()
+While Time.Get1 () < 1000
+lv_power_14 = 40
+f_sync_1 ()
+EndWhile
+f_stop_0 ()
 lv_time_2 = 200
 f_delay_1 ()
-lv_base_power_12 = 20
+lv_motor_16 = gv_right_motor
+lv_forward_16 = gv_right_forward * - 1
+lv_deg_16 = 230
+lv_max_power_16 = 30
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward
+lv_deg_16 = 130
+lv_max_power_16 = 30
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_power_1 = 40
+f_movement_init_1 ()
+f_read_percent_1 ()
+gv_p = lv_percent_7
+While gv_p > 23
+f_read_percent_1 ()
+gv_p = lv_percent_7
+lv_a_10 = 90
+f_ultra_line_1 ()
+EndWhile
+EndIf
+lv_base_power_17 = 40
+lv_min_power_17 = 0
+lv_deg_17 = 30
+lv_coef_17 = 1
+f_zame_4 ()
+f_stop_0 ()
+gv_is_second_brown_chem = "False"
+gv_object = "none"
+lv_port_5 = gv_right_sensor
+lv_mode_5 = 1
+lv_d_5 = 300
+f_read_mode_4 ()
+gv_r = lv_result_5
+If gv_r > 60 Then
+lv_port_5 = gv_right_sensor
+lv_mode_5 = 2
+lv_d_5 = 0
+f_read_mode_4 ()
+gv_g = lv_result_5
+If gv_g > 80 Then
+gv_brown = "True"
+gv_brown_man = "True"
+gv_object = "human"
+gv_men_count = gv_men_count + 1
+Else
+gv_brown = "True"
+gv_object = "fire"
+gv_fire_count = gv_fire_count + 1
+Thread.Run = f_kick_water_0
+EndIf
+ElseIf gv_chem = "False" And gv_r > 12 Then
+gv_brown = "True"
+gv_chem = "True"
+gv_object = "chem"
+gv_is_second_brown_chem = "True"
+f_take_chem_on_right_0 ()
+EndIf
+gv_deg = 520
+If gv_object <> "chem" Then
+lv_base_power_12 = 40
+lv_min_power_12 = 15
+lv_deg_12 = 120
+lv_coef_12 = 1
+f_speedup_4 ()
+gv_deg = gv_deg - 120
+EndIf
+f_reset_0 ()
+If gv_brown = "False" Then
+While MotorA.GetTacho () * gv_left_forward < gv_deg - 130
+lv_a_10 = 93
+f_ultra_line_1 ()
+EndWhile
+lv_base_power_17 = 40
+lv_min_power_17 = 15
+lv_deg_17 = 120
+lv_coef_17 = 1
+f_zame_4 ()
+f_stop_0 ()
+gv_object = "none"
+lv_port_5 = gv_right_sensor
+lv_mode_5 = 1
+lv_d_5 = 200
+f_read_mode_4 ()
+gv_r = lv_result_5
+If gv_r > 80 Then
+lv_port_5 = gv_right_sensor
+lv_mode_5 = 2
+lv_d_5 = 0
+f_read_mode_4 ()
+gv_g = lv_result_5
+If gv_g > 100 Then
+gv_brown = "True"
+gv_brown_man = "True"
+gv_object = "human"
+gv_men_count = gv_men_count + 1
+Else
+gv_brown = "True"
+gv_object = "fire"
+gv_fire_count = gv_fire_count + 1
+lv_base_power_12 = 40
+lv_min_power_12 = 15
+lv_deg_12 = 50
+lv_coef_12 = - 1
+f_speedup_4 ()
+lv_base_power_17 = 40
+lv_min_power_17 = 15
+lv_deg_17 = 50
+lv_coef_17 = - 1
+f_zame_4 ()
+f_stop_0 ()
+f_kick_water_0 ()
+lv_base_power_12 = 40
+lv_min_power_12 = 15
+lv_deg_12 = 100
+lv_coef_12 = 1
+f_speedup_4 ()
+EndIf
+ElseIf gv_chem = "False" And gv_r > 15 Then
+gv_brown = "True"
+gv_object = "chem"
+gv_is_second_brown_chem = "True"
+f_take_chem_on_right_0 ()
+EndIf
+lv_power_1 = 40
+f_movement_init_1 ()
+Else
+While MotorA.GetTacho () * gv_left_forward < gv_deg
+lv_a_10 = 90
+f_ultra_line_1 ()
+EndWhile
+EndIf
+f_reset_0 ()
+gv_a = 93
+If gv_is_second_brown_chem = "True" Then
+gv_a = 90
+EndIf
+While MotorA.GetTacho () * gv_left_forward < 520
+lv_a_10 = gv_a
+f_ultra_line_1 ()
+EndWhile
+MotorA.SetPower ( 40 * gv_left_forward )
+MotorB.SetPower ( 40 * gv_right_forward )
+lv_time_2 = 1000
+f_delay_1 ()
+f_stop_0 ()
+gv_object = "none"
+gv_take_left = "False"
+gv_take_right = "False"
+gv_is_fire = "False"
+lv_port_5 = gv_right_sensor
+lv_mode_5 = 1
+lv_d_5 = 200
+f_read_mode_4 ()
+gv_r = lv_result_5
+If gv_r > 80 Then
+lv_port_5 = gv_right_sensor
+lv_mode_5 = 2
+lv_d_5 = 0
+f_read_mode_4 ()
+gv_g = lv_result_5
+If gv_g > 100 Then
+gv_red = "True"
+gv_red_man = "True"
+gv_object = "R: man"
+gv_men_count = gv_men_count + 1
+Else
+gv_red = "True"
+gv_object = "fire"
+gv_fire_count = gv_fire_count + 1
+gv_is_fire = "True"
+EndIf
+ElseIf gv_chem = "False" Then
+lv_port_5 = gv_right_sensor
+lv_mode_5 = 4
+lv_d_5 = 0
+f_read_mode_4 ()
+gv_w = lv_result_5
+If gv_w > 30 Then
+gv_red = "True"
+gv_object = "chem"
+gv_take_right = "True"
+gv_chem = "True"
+EndIf
+EndIf
+If gv_red = "False" Then
+gv_object = "none"
+lv_port_5 = gv_left_sensor
+lv_mode_5 = 1
+lv_d_5 = 0
+f_read_mode_4 ()
+gv_r = lv_result_5
+If gv_r > 50 Then
+lv_port_5 = gv_left_sensor
+lv_mode_5 = 2
+lv_d_5 = 0
+f_read_mode_4 ()
+gv_g = lv_result_5
+If gv_g > 70 Then
+gv_red = "True"
+gv_red_man = "True"
+gv_object = "L: man"
+gv_men_count = gv_men_count + 1
+Else
+gv_red = "True"
+gv_object = "fire"
+gv_fire_count = gv_fire_count + 1
+gv_is_fire = "True"
+EndIf
+ElseIf gv_chem = "False" And gv_red = "False" Then
+Sensor.SetMode ( gv_left_sensor , 0 )
+lv_motor_16 = gv_right_motor
+lv_forward_16 = gv_right_forward * - 1
+lv_deg_16 = 40
+lv_max_power_16 = 20
+lv_acceleration_16 = "False"
+lv_zame_16 = "False"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_time_2 = 300
+f_delay_1 ()
+gv_ultra = Sensor.ReadRawValue ( gv_ultrasonic , 0 )
+gv_col = Sensor.ReadRawValue ( gv_left_sensor , 0 )
+Sensor.SetMode ( gv_left_sensor , 4 )
+lv_time_2 = 300
+f_delay_1 ()
+gv_w = Sensor.ReadRawValue ( gv_left_sensor , 0 )
+MotorB.StartPower ( 80 * gv_right_forward )
+Program.Delay ( 1000 )
+MotorB.OffAndBrake ()
+Sensor.SetMode ( gv_left_sensor , 1 )
+If gv_ultra < 75 Or gv_col = 12 Or gv_w < 30 Or gv_w > 70 Then
+gv_red = "True"
+gv_object = "L: chem"
+gv_chem = "True"
+gv_take_left = "True"
+EndIf
+EndIf
+EndIf
+If gv_take_left = "True" Then
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 60
+lv_coef_12 = - 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 60
+lv_coef_17 = - 1
+f_zame_4 ()
+MotorB.OffAndBrake ()
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward * - 1
+lv_deg_16 = 90
+lv_max_power_16 = 20
+lv_acceleration_16 = "False"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+Motor.Move ( gv_grabber_motor , 50 , 170 , "True" )
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 40
+lv_coef_12 = 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 40
+lv_coef_17 = 1
+f_zame_4 ()
+f_stop_0 ()
+Motor.Move ( gv_grabber_motor , 50 , 110 , "True" )
+lv_base_power_12 = 30
 lv_min_power_12 = 20
 lv_deg_12 = 40
 lv_coef_12 = - 1
 f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 40
+lv_coef_17 = - 1
+f_zame_4 ()
 f_stop_0 ()
 lv_time_2 = 200
 f_delay_1 ()
 lv_motor_16 = gv_left_motor
 lv_forward_16 = gv_left_forward
-lv_deg_16 = 360
+lv_deg_16 = 90
+lv_max_power_16 = 20
+lv_acceleration_16 = "True"
+lv_zame_16 = "False"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_power_1 = 50
+f_movement_init_1 ()
+Program.Delay ( 1000 )
+f_stop_0 ()
+ElseIf gv_take_right = "True" Then
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 60
+lv_coef_12 = - 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 60
+lv_coef_17 = - 1
+f_zame_4 ()
+MotorA.OffAndBrake ()
+lv_motor_16 = gv_right_motor
+lv_forward_16 = gv_right_forward * - 1
+lv_deg_16 = 90
+lv_max_power_16 = 20
+lv_acceleration_16 = "False"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+Motor.Move ( gv_grabber_motor , 50 , 170 , "True" )
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 40
+lv_coef_12 = 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 40
+lv_coef_17 = 1
+f_zame_4 ()
+f_stop_0 ()
+Motor.Move ( gv_grabber_motor , 50 , 110 , "True" )
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 40
+lv_coef_12 = - 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 40
+lv_coef_17 = - 1
+f_zame_4 ()
+f_stop_0 ()
+lv_time_2 = 200
+f_delay_1 ()
+lv_motor_16 = gv_right_motor
+lv_forward_16 = gv_right_forward
+lv_deg_16 = 90
+lv_max_power_16 = 20
+lv_acceleration_16 = "True"
+lv_zame_16 = "False"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_power_1 = 50
+f_movement_init_1 ()
+Program.Delay ( 1000 )
+f_stop_0 ()
+EndIf
+lv_base_power_12 = 20
+lv_min_power_12 = 15
+lv_deg_12 = 53
+lv_coef_12 = - 1
+f_speedup_4 ()
+lv_base_power_17 = 20
+lv_min_power_17 = 15
+lv_deg_17 = 53
+lv_coef_17 = - 1
+f_zame_4 ()
+f_stop_0 ()
+lv_motor_16 = gv_right_motor
+lv_forward_16 = gv_right_forward * - 1
+lv_deg_16 = 355
+lv_max_power_16 = 20
+lv_acceleration_16 = "False"
+lv_zame_16 = "False"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_power_1 = - 40
+f_movement_init_1 ()
+lv_time_2 = 1000
+f_delay_1 ()
+f_stop_0 ()
+If gv_is_fire = "True" Then
+f_kick_water_0 ()
+EndIf
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 120
+lv_coef_12 = 1
+f_speedup_4 ()
+lv_deg_15 = 420 - 240
+lv_power_15 = 30
+f_forward_deg_2 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 15
+lv_deg_17 = 120
+lv_coef_17 = 1
+f_zame_4 ()
+f_stop_0 ()
+gv_object = "none"
+lv_port_5 = gv_right_sensor
+lv_mode_5 = 1
+lv_d_5 = 400
+f_read_mode_4 ()
+gv_r = lv_result_5
+If gv_r > 60 Then
+lv_port_5 = gv_right_sensor
+lv_mode_5 = 2
+lv_d_5 = 0
+f_read_mode_4 ()
+gv_g = lv_result_5
+If gv_g > 80 Then
+gv_yellow = "True"
+gv_yellow_man = "True"
+gv_object = "man"
+gv_men_count = gv_men_count + 1
+Else
+gv_yellow = "True"
+gv_object = "fire"
+gv_fire_count = gv_fire_count + 1
+f_kick_water_0 ()
+EndIf
+ElseIf gv_chem = "False" Then
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward * - 1
+lv_deg_16 = 20
+lv_max_power_16 = 20
+lv_acceleration_16 = "False"
+lv_zame_16 = "False"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_port_5 = gv_right_sensor
+lv_mode_5 = 4
+lv_d_5 = 50
+f_read_mode_4 ()
+gv_w = lv_result_5
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward
+lv_deg_16 = 20
+lv_max_power_16 = 20
+lv_acceleration_16 = "False"
+lv_zame_16 = "False"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+If gv_w > 40 Then
+gv_yellow = "True"
+gv_object = "chem"
+gv_chem = "True"
+gv_take_chem_in_yellow = "True"
+EndIf
+EndIf
+lv_motor_16 = gv_right_motor
+lv_forward_16 = gv_right_forward
+lv_deg_16 = 245
+lv_max_power_16 = 20
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_time_2 = 200
+f_delay_1 ()
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward
+lv_deg_16 = 250
+lv_max_power_16 = 20
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+f_stop_0 ()
+lv_time_2 = 500
+f_delay_1 ()
+If gv_yellow = "False" Then
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 85
+lv_coef_12 = 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 90
+lv_coef_17 = 1
+f_zame_4 ()
+f_stop_0 ()
+gv_object = "none"
+gv_is_second_yellow_chem = "True"
+lv_port_5 = gv_left_sensor
+lv_mode_5 = 1
+lv_d_5 = 200
+f_read_mode_4 ()
+gv_r = lv_result_5
+If gv_r > 50 Then
+lv_port_5 = gv_left_sensor
+lv_mode_5 = 2
+lv_d_5 = 0
+f_read_mode_4 ()
+gv_g = lv_result_5
+If gv_g > 60 Then
+gv_yellow = "True"
+gv_yellow_man = "True"
+gv_object = "man"
+gv_men_count = gv_men_count + 1
+Else
+gv_yellow = "True"
+gv_object = "fire"
+gv_fire_count = gv_fire_count + 1
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 50
+lv_coef_12 = - 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 50
+lv_coef_17 = - 1
+f_zame_4 ()
+f_stop_0 ()
+f_kick_water_0 ()
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 100
+lv_coef_12 = 1
+f_speedup_4 ()
+EndIf
+ElseIf gv_chem = "False" Then
+lv_time_2 = 300
+f_delay_1 ()
+gv_ultra = Sensor.ReadRawValue ( gv_ultrasonic , 0 )
+If gv_ultra < 70 Then
+gv_yellow = "True"
+gv_object = "chem"
+gv_chem = "True"
+lv_finish_forward_18 = "True"
+f_take_chem_on_left_1 ()
+EndIf
+EndIf
+Else
+lv_deg_15 = 175
+lv_power_15 = 30
+f_forward_deg_2 ()
+EndIf
+lv_deg_15 = 100
+lv_power_15 = 30
+f_forward_deg_2 ()
+f_reset_0 ()
+gv_a = 105
+While MotorA.GetTacho () * gv_left_forward < 300
+lv_a_10 = gv_a
+f_ultra_line_1 ()
+EndWhile
+MotorA.SetPower ( 40 * gv_left_forward )
+MotorB.SetPower ( 40 * gv_right_forward )
+lv_time_2 = 1000
+f_delay_1 ()
+f_stop_0 ()
+gv_object = "none"
+lv_port_5 = gv_left_sensor
+lv_mode_5 = 1
+lv_d_5 = 0
+f_read_mode_4 ()
+gv_r = lv_result_5
+If gv_r > 40 Then
+lv_port_5 = gv_left_sensor
+lv_mode_5 = 2
+lv_d_5 = 0
+f_read_mode_4 ()
+gv_g = lv_result_5
+If gv_g > 50 Then
+gv_green = "True"
+gv_green_man = "True"
+gv_object = "man"
+gv_men_count = gv_men_count + 1
+Else
+gv_green = "True"
+gv_object = "fire"
+gv_fire_count = gv_fire_count + 1
+f_kick_water_0 ()
+EndIf
+ElseIf gv_chem = "False" Then
+lv_time_2 = 300
+f_delay_1 ()
+gv_ultra = Sensor.ReadRawValue ( gv_ultrasonic , 0 )
+gv_ch = "False"
+If gv_ultra < 75 Then
+gv_ch = "True"
+Else
+lv_motor_16 = gv_right_motor
+lv_forward_16 = gv_right_forward * - 1
+lv_deg_16 = 20
+lv_max_power_16 = 20
+lv_acceleration_16 = "False"
+lv_zame_16 = "False"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_time_2 = 300
+f_delay_1 ()
+gv_ultra = Sensor.ReadRawValue ( gv_ultrasonic , 0 )
+Motor.Start ( gv_right_motor , gv_right_forward * 30 )
+lv_time_2 = 500
+f_delay_1 ()
+f_stop_0 ()
+If gv_ultra < 75 Then
+gv_ch = "True"
+EndIf
+EndIf
+If gv_ultra < 75 Then
+gv_green = "True"
+gv_object = "chem"
+gv_chem = "True"
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 80
+lv_coef_12 = - 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 80
+lv_coef_17 = - 1
+f_zame_4 ()
+f_stop_0 ()
+Motor.Move ( gv_grabber_motor , 50 , 170 , "True" )
+lv_motor_16 = gv_right_motor
+lv_forward_16 = gv_right_forward
+lv_deg_16 = 160
 lv_max_power_16 = 30
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+Motor.Move ( gv_grabber_motor , 50 , 110 , "True" )
+lv_motor_16 = gv_right_motor
+lv_forward_16 = gv_right_forward * - 1
+lv_deg_16 = 160
+lv_max_power_16 = 30
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_power_1 = 50
+f_movement_init_1 ()
+lv_time_2 = 1000
+f_delay_1 ()
+f_stop_0 ()
+EndIf
+EndIf
+lv_base_power_12 = 20
+lv_min_power_12 = 20
+lv_deg_12 = 5
+lv_coef_12 = - 1
+f_speedup_4 ()
+f_stop_0 ()
+lv_motor_16 = gv_right_motor
+lv_forward_16 = gv_right_forward * - 1
+lv_deg_16 = 250
+lv_max_power_16 = 20
+lv_acceleration_16 = "False"
+lv_zame_16 = "False"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward
+lv_deg_16 = 115
+lv_max_power_16 = 20
 lv_acceleration_16 = "False"
 lv_zame_16 = "False"
 lv_to_stop_16 = "True"
 f_move_motor_7 ()
 lv_power_1 = - 50
 f_movement_init_1 ()
-lv_time_2 = 2000
+lv_time_2 = 1200
 f_delay_1 ()
 f_stop_0 ()
-f_reset_0 ()
-lv_power_1 = 30
-f_movement_init_1 ()
-f_read_percent_1 ()
-gv_p = lv_percent_7
-While Motor.GetCount ( gv_left_motor ) * gv_left_forward < 450 Or gv_p > 10
-f_read_percent_1 ()
-gv_p = lv_percent_7
-lv_l_9 = gv_p
-f_line_slow_1 ()
-EndWhile
-f_stop_0 ()
-lv_motor_16 = gv_left_motor
-lv_forward_16 = gv_left_forward
-lv_deg_16 = 375
-lv_max_power_16 = 30
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
-lv_to_stop_16 = "True"
-f_move_motor_7 ()
-lv_base_power_12 = 20
+lv_base_power_12 = 30
 lv_min_power_12 = 20
-lv_deg_12 = 200
+lv_deg_12 = 120
 lv_coef_12 = 1
 f_speedup_4 ()
+f_reset_0 ()
+gv_u = Sensor.ReadRawValue ( gv_ultrasonic , 0 )
+While MotorA.GetTacho () * gv_left_forward < 425 - 120 - 120
+lv_a_10 = 95
+f_ultra_line_1 ()
+EndWhile
+lv_base_power_17 = 30
+lv_min_power_17 = 15
+lv_deg_17 = 120
+lv_coef_17 = 1
+f_zame_4 ()
 f_stop_0 ()
-EndIf
-f_kick_water_0 ()
-f_kick_water_0 ()
-lv_base_power_12 = 20
+gv_object = "none"
+lv_port_5 = gv_left_sensor
+lv_mode_5 = 1
+lv_d_5 = 200
+f_read_mode_4 ()
+gv_r = lv_result_5
+If gv_r > 50 Then
+lv_port_5 = gv_left_sensor
+lv_mode_5 = 2
+lv_d_5 = 0
+f_read_mode_4 ()
+gv_g = lv_result_5
+If gv_g > 80 Then
+gv_green = "True"
+gv_green_man = "True"
+gv_object = "man"
+gv_men_count = gv_men_count + 1
+Else
+gv_green = "True"
+gv_object = "fire"
+gv_fire_count = gv_fire_count + 1
+lv_base_power_12 = 30
 lv_min_power_12 = 20
-lv_deg_12 = 200
+lv_deg_12 = 50
 lv_coef_12 = - 1
 f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 50
+lv_coef_17 = - 1
+f_zame_4 ()
 f_stop_0 ()
+f_kick_water_0 ()
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 100
+lv_coef_12 = 1
+f_speedup_4 ()
+EndIf
+ElseIf gv_chem = "False" Then
+lv_time_2 = 300
+f_delay_1 ()
+gv_ultra = Sensor.ReadRawValue ( gv_ultrasonic , 0 )
+If gv_ultra < 90 Then
+gv_green = "True"
+gv_object = "chem"
+gv_chem = "True"
+lv_finish_forward_18 = "True"
+f_take_chem_on_left_1 ()
+EndIf
+EndIf
+If gv_object = "none" Or gv_object = "man" Then
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 80
+lv_coef_12 = 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 70
+lv_coef_17 = 1
+f_zame_4 ()
+Else
+lv_deg_15 = 80
+lv_power_15 = 30
+f_forward_deg_2 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 70
+lv_coef_17 = 1
+f_zame_4 ()
+EndIf
+f_stop_0 ()
+gv_is_first_blue_object_chem = "False"
+gv_is_second_blue_object_chem = "False"
+gv_object = "none"
+gv_is_on_second_blue = "False"
+lv_port_5 = gv_left_sensor
+lv_mode_5 = 1
+lv_d_5 = 200
+f_read_mode_4 ()
+gv_r = lv_result_5
+If gv_r > 50 Then
+lv_port_5 = gv_left_sensor
+lv_mode_5 = 2
+lv_d_5 = 0
+f_read_mode_4 ()
+gv_g = lv_result_5
+If gv_g > 100 Then
+gv_blue = "True"
+gv_blue_man = "True"
+gv_object = "man"
+gv_men_count = gv_men_count + 1
+Else
+gv_blue = "True"
+gv_object = "fire"
+gv_fire_count = gv_fire_count + 1
+f_kick_water_0 ()
+EndIf
+ElseIf gv_chem = "False" Then
+lv_time_2 = 300
+f_delay_1 ()
+gv_ultra = Sensor.ReadRawValue ( gv_ultrasonic , 0 )
+If gv_ultra < 80 Then
+gv_blue = "True"
+gv_object = "chem"
+gv_chem = "True"
+gv_is_first_blue_object_chem = "True"
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 290 / 2
+lv_coef_12 = 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 290 / 2
+lv_coef_17 = 1
+f_zame_4 ()
+f_stop_0 ()
+lv_time_2 = 200
+f_delay_1 ()
 lv_motor_16 = gv_left_motor
 lv_forward_16 = gv_left_forward * - 1
 lv_deg_16 = 360
@@ -551,506 +1168,775 @@ lv_acceleration_16 = "False"
 lv_zame_16 = "False"
 lv_to_stop_16 = "True"
 f_move_motor_7 ()
-lv_power_1 = - 40
-f_movement_init_1 ()
-lv_time_2 = 3000
+Motor.Move ( gv_grabber_motor , 50 , 170 , "True" )
+lv_time_2 = 200
 f_delay_1 ()
-f_stop_0 ()
-lv_coef_19 = 1
-f_open_cubes_1 ()
-lv_base_power_12 = 20
+lv_base_power_12 = 30
 lv_min_power_12 = 20
-lv_deg_12 = 205
+lv_deg_12 = 35
 lv_coef_12 = 1
 f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 35
+lv_coef_17 = 1
+f_zame_4 ()
 f_stop_0 ()
-lv_motor_16 = gv_right_motor
-lv_forward_16 = gv_right_forward
+Motor.Move ( gv_grabber_motor , 50 , 110 , "True" )
+lv_time_2 = 200
+f_delay_1 ()
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 40
+lv_coef_12 = - 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 40
+lv_coef_17 = - 1
+f_zame_4 ()
+f_stop_0 ()
+lv_time_2 = 200
+f_delay_1 ()
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward
 lv_deg_16 = 360
-lv_max_power_16 = 30
+lv_max_power_16 = 20
 lv_acceleration_16 = "False"
 lv_zame_16 = "False"
 lv_to_stop_16 = "True"
 f_move_motor_7 ()
-gv_p = Sensor.ReadPercent ( gv_line )
-While gv_p > 10
-gv_p = Sensor.ReadPercent ( gv_line )
+EndIf
+EndIf
+If gv_blue = "False" Then
+gv_is_on_second_blue = "True"
+lv_base_power_12 = 40
+lv_min_power_12 = 20
+lv_deg_12 = 100
+lv_coef_12 = 1
+f_speedup_4 ()
+f_reset_0 ()
+While MotorA.GetTacho () * gv_left_forward < 520 - 200
+lv_a_10 = 95
+f_ultra_line_1 ()
 EndWhile
+lv_base_power_17 = 40
+lv_min_power_17 = 20
+lv_deg_17 = 100
+lv_coef_17 = 1
+f_zame_4 ()
+f_stop_0 ()
+lv_port_5 = gv_left_sensor
+lv_mode_5 = 1
+lv_d_5 = 200
+f_read_mode_4 ()
+gv_r = lv_result_5
+If gv_r > 50 Then
+lv_port_5 = gv_left_sensor
+lv_mode_5 = 2
+lv_d_5 = 0
+f_read_mode_4 ()
+gv_g = lv_result_5
+If gv_g > 80 Then
+gv_blue = "True"
+gv_blue_man = "True"
+gv_object = "man"
+gv_men_count = gv_men_count + 1
+Else
+gv_blue = "True"
+gv_object = "fire"
+gv_fire_count = gv_fire_count + 1
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 50
+lv_coef_12 = - 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 50
+lv_coef_17 = - 1
+f_zame_4 ()
+f_stop_0 ()
+f_kick_water_0 ()
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 50
+lv_coef_12 = 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 50
+lv_coef_17 = 1
+f_zame_4 ()
+f_stop_0 ()
+EndIf
+Else
+lv_time_2 = 300
+f_delay_1 ()
+gv_ultra = Sensor.ReadRawValue ( gv_ultrasonic , 0 )
+If gv_ultra < 80 Then
+gv_blue = "True"
+gv_chem = "True"
+gv_object = "chem"
+gv_is_second_blue_object_chem = "True"
+lv_finish_forward_18 = "False"
+f_take_chem_on_left_1 ()
+EndIf
+EndIf
+EndIf
+gv_t = gv_men_count + " " + gv_fire_count + " " + gv_chem
+lv_text_6 = gv_t
+f_text_to_screen_1 ()
+gv_white_object = "none"
+If gv_men_count < 2 Then
+gv_white_object = "man"
+ElseIf gv_fire_count < 2 Then
+gv_white_object = "fire"
+ElseIf gv_chem = "False" Then
+gv_white_object = "chem"
+EndIf
+If gv_white_object = "man" Then
+gv_white = "True"
+gv_white_man = "True"
+gv_men_count = gv_men_count + 1
+EndIf
+If ( gv_white_object = "chem" Or gv_white_object = "fire" ) Or gv_take_chem_in_yellow = "True" Then
+If gv_is_on_second_blue = "True" Then
+If gv_is_second_blue_object_chem = "False" Then
+lv_base_power_12 = 30
+lv_min_power_12 = 30
+lv_deg_12 = 50
+lv_coef_12 = - 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 30
+lv_deg_17 = 50
+lv_coef_17 = - 1
+f_zame_4 ()
+MotorA.OffAndBrake ()
+Else
 lv_base_power_12 = 20
 lv_min_power_12 = 20
-lv_deg_12 = 470
+lv_deg_12 = 10
 lv_coef_12 = 1
 f_speedup_4 ()
 f_stop_0 ()
-lv_coef_20 = 1
-f_close_cubes_1 ()
+lv_time_2 = 200
+f_delay_1 ()
+EndIf
 lv_motor_16 = gv_right_motor
 lv_forward_16 = gv_right_forward * - 1
 lv_deg_16 = 360
 lv_max_power_16 = 30
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
 lv_to_stop_16 = "True"
 f_move_motor_7 ()
-lv_power_1 = - 40
+lv_power_1 = - 50
 f_movement_init_1 ()
-lv_time_2 = 2000
+lv_time_2 = 700
 f_delay_1 ()
 f_stop_0 ()
-If gv_color1 <> "black" And gv_color2 <> "black" Then
+Else
+If gv_is_first_blue_object_chem = "False" Then
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 100
+lv_coef_12 = 1
+f_speedup_4 ()
+lv_deg_15 = 415 - 200
+lv_power_15 = 30
+f_forward_deg_2 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 100
+lv_coef_17 = 1
+f_zame_4 ()
+Else
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 75
+lv_coef_12 = 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 75
+lv_coef_17 = 1
+f_zame_4 ()
+EndIf
+f_stop_0 ()
+lv_motor_16 = gv_right_motor
+lv_forward_16 = gv_right_forward * - 1
+lv_deg_16 = 360
+lv_max_power_16 = 30
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_power_1 = - 50
+f_movement_init_1 ()
+lv_time_2 = 500
+f_delay_1 ()
+f_stop_0 ()
+EndIf
+lv_time_2 = 100
+f_delay_1 ()
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 100
+lv_coef_12 = 1
+f_speedup_4 ()
+f_reset_0 ()
+Sensor.SetMode ( gv_line , 2 )
+While MotorA.GetTacho () * gv_left_forward < 130
+lv_power_14 = 30
+f_sync_1 ()
+EndWhile
+While Sensor.ReadRawValue ( gv_line , 0 ) <> 4
+lv_power_14 = 30
+f_sync_1 ()
+EndWhile
+If gv_white_object = "fire" And gv_take_chem_in_yellow = "True" Then
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 100
+lv_coef_17 = 1
+f_zame_4 ()
+f_stop_0 ()
+f_kick_water_0 ()
+f_kick_water_0 ()
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 30
+lv_coef_12 = 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 30
+lv_coef_17 = 1
+f_zame_4 ()
+f_stop_0 ()
+ElseIf gv_white_object = "fire" Then
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 100
+lv_coef_17 = 1
+f_zame_4 ()
+f_stop_0 ()
+f_kick_water_0 ()
+f_kick_water_0 ()
+ElseIf gv_take_chem_in_yellow = "True" Then
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 170
+lv_coef_17 = 1
+f_zame_4 ()
+f_stop_0 ()
+EndIf
+If gv_take_chem_in_yellow = "True" Then
+Sensor.SetMode ( gv_line , 2 )
 lv_motor_16 = gv_left_motor
 lv_forward_16 = gv_left_forward
-lv_deg_16 = 100
-lv_max_power_16 = 20
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
+lv_deg_16 = 360
+lv_max_power_16 = 30
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
 lv_to_stop_16 = "True"
 f_move_motor_7 ()
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = 110
-lv_coef_12 = 1
-f_speedup_4 ()
+f_reset_0 ()
+lv_deg_15 = 450 - 100
+lv_power_15 = 30
+f_forward_deg_2 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 100
+lv_coef_17 = 1
+f_zame_4 ()
 f_stop_0 ()
-lv_coef_19 = 1
-f_open_cubes_1 ()
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = 110
-lv_coef_12 = - 1
-f_speedup_4 ()
-f_stop_0 ()
-Motor.Start ( gv_left_motor , gv_left_forward * - 80 )
-lv_time_2 = 2500
+lv_time_2 = 200
 f_delay_1 ()
-f_stop_0 ()
-ElseIf gv_color1 <> "red" And gv_color2 <> "red" Then
-lv_motor_16 = gv_right_motor
-lv_forward_16 = gv_right_forward
-lv_deg_16 = 340
-lv_max_power_16 = 25
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward * - 1
+lv_deg_16 = 360
+lv_max_power_16 = 30
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
 lv_to_stop_16 = "True"
 f_move_motor_7 ()
+Motor.Move ( gv_grabber_motor , 50 , 170 , "True" )
 lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 500
+lv_min_power_12 = 20
+lv_deg_12 = 65
 lv_coef_12 = 1
 f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 65
+lv_coef_17 = 1
+f_zame_4 ()
 f_stop_0 ()
-lv_coef_19 = 1
-f_open_cubes_1 ()
+Motor.Move ( gv_grabber_motor , 50 , 110 , "True" )
 lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 500
+lv_min_power_12 = 20
+lv_deg_12 = 40
 lv_coef_12 = - 1
 f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 40
+lv_coef_17 = - 1
+f_zame_4 ()
 f_stop_0 ()
-Motor.Start ( gv_right_motor , gv_right_forward * - 80 )
-lv_time_2 = 2500
+lv_time_2 = 200
 f_delay_1 ()
+Motor.MoveSync ( gv_motors , gv_left_forward * - 1 * 20 , gv_right_forward * 20 , 185 , "True" )
+lv_time_2 = 200
+f_delay_1 ()
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 100
+lv_coef_12 = 1
+f_speedup_4 ()
+lv_deg_15 = 100
+lv_power_15 = 30
+f_forward_deg_2 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 100
+lv_coef_17 = 1
+f_zame_4 ()
 f_stop_0 ()
-ElseIf gv_color1 <> "yellow" And gv_color2 <> "yellow" Then
-lv_motor_16 = gv_right_motor
-lv_forward_16 = gv_right_forward
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward
 lv_deg_16 = 200
 lv_max_power_16 = 30
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
 lv_to_stop_16 = "True"
 f_move_motor_7 ()
-lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 850
-lv_coef_12 = 1
-f_speedup_4 ()
-f_stop_0 ()
-lv_coef_19 = 1
-f_open_cubes_1 ()
-lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 850
-lv_coef_12 = - 1
-f_speedup_4 ()
-f_stop_0 ()
-MotorB.StartPower ( - 80 * gv_right_forward )
-lv_time_2 = 2500
+lv_time_2 = 200
 f_delay_1 ()
-f_stop_0 ()
-ElseIf gv_color1 <> "green" And gv_color2 <> "green" Then
 lv_motor_16 = gv_right_motor
 lv_forward_16 = gv_right_forward
-lv_deg_16 = 120
+lv_deg_16 = 210
+lv_max_power_16 = 30
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_time_2 = 200
+f_delay_1 ()
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 100
+lv_coef_12 = 1
+f_speedup_4 ()
+lv_deg_15 = 100
+lv_power_15 = 30
+f_forward_deg_2 ()
+f_stop_0 ()
+EndIf
+If gv_white_object = "chem" Then
+Sensor.SetMode ( gv_line , 0 )
+gv_minus_deg = 100
+If gv_white_object = "fire" Then
+gv_minus_deg = gv_minus_deg + 200
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 100
+lv_coef_12 = 1
+f_speedup_4 ()
+EndIf
+lv_deg_15 = 420 - gv_minus_deg
+lv_power_15 = 30
+f_forward_deg_2 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 100
+lv_coef_17 = 1
+f_zame_4 ()
+f_stop_0 ()
+lv_time_2 = 200
+f_delay_1 ()
+f_stop_0 ()
+lv_time_2 = 200
+f_delay_1 ()
+gv_ch = "False"
+lv_port_5 = gv_right_sensor
+lv_mode_5 = 4
+lv_d_5 = 200
+f_read_mode_4 ()
+gv_w = lv_result_5
+If gv_w > 40 Then
+gv_ch = "True"
+Else
+Sensor.SetMode ( gv_right_sensor , 0 )
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward * - 1
+lv_deg_16 = 25
 lv_max_power_16 = 20
 lv_acceleration_16 = "False"
 lv_zame_16 = "False"
 lv_to_stop_16 = "True"
 f_move_motor_7 ()
-lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 1200
-lv_coef_12 = 1
-f_speedup_4 ()
-f_stop_0 ()
-lv_coef_19 = 1
-f_open_cubes_1 ()
-lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 1190
-lv_coef_12 = - 1
-f_speedup_4 ()
-f_stop_0 ()
-MotorB.StartPower ( - 80 * gv_right_forward )
-lv_time_2 = 2500
+lv_time_2 = 500
 f_delay_1 ()
-f_stop_0 ()
-ElseIf gv_color1 <> "blue" And gv_color2 <> "blue" Then
+If Sensor.ReadRawValue ( gv_right_sensor , 0 ) = 12 Then
+gv_ch = "True"
+Else
+lv_port_5 = gv_right_sensor
+lv_mode_5 = 4
+lv_d_5 = 300
+f_read_mode_4 ()
+gv_w = lv_result_5
+If gv_w > 40 Then
+gv_ch = "True"
+EndIf
+EndIf
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward
+lv_deg_16 = 25
+lv_max_power_16 = 20
+lv_acceleration_16 = "False"
+lv_zame_16 = "False"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+EndIf
+If gv_ch = "True" Then
+f_beep_0 ()
 lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 1100
-lv_coef_12 = 1
-f_speedup_4 ()
-f_stop_0 ()
-lv_coef_19 = 1
-f_open_cubes_1 ()
-lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 1050
-lv_coef_12 = - 1
-f_speedup_4 ()
-lv_power_1 = - 30
-f_movement_init_1 ()
-lv_time_2 = 1000
-f_delay_1 ()
-f_stop_0 ()
-ElseIf gv_color1 <> "white" And gv_color2 <> "white" Then
-lv_base_power_12 = 20
 lv_min_power_12 = 20
-lv_deg_12 = 600
-lv_coef_12 = 1
+lv_deg_12 = 80
+lv_coef_12 = - 1
 f_speedup_4 ()
+lv_deg_15 = 190 - 160
+lv_power_15 = - 30
+f_forward_deg_2 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 80
+lv_coef_17 = - 1
+f_zame_4 ()
 f_stop_0 ()
+lv_time_2 = 200
+f_delay_1 ()
 lv_motor_16 = gv_left_motor
 lv_forward_16 = gv_left_forward
 lv_deg_16 = 100
 lv_max_power_16 = 20
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+Motor.Move ( gv_grabber_motor , 50 , 170 , "True" )
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 35
+lv_coef_12 = 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 35
+lv_coef_17 = 1
+f_zame_4 ()
+f_stop_0 ()
+Motor.Move ( gv_grabber_motor , 50 , 110 , "True" )
+lv_time_2 = 200
+f_delay_1 ()
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 35
+lv_coef_12 = - 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 35
+lv_coef_17 = - 1
+f_zame_4 ()
+f_stop_0 ()
+lv_time_2 = 200
+f_delay_1 ()
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward * - 1
+lv_deg_16 = 90
+lv_max_power_16 = 20
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
 lv_to_stop_16 = "True"
 f_move_motor_7 ()
 f_stop_0 ()
-lv_coef_19 = 1
-f_open_cubes_1 ()
-lv_base_power_12 = 20
+lv_time_2 = 200
+f_delay_1 ()
+lv_motor_16 = gv_right_motor
+lv_forward_16 = gv_right_forward
+lv_deg_16 = 490
+lv_max_power_16 = 30
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_time_2 = 200
+f_delay_1 ()
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward
+lv_deg_16 = 120
+lv_max_power_16 = 30
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+Else
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward * - 1
+lv_deg_16 = 230
+lv_max_power_16 = 30
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+Motor.Move ( gv_grabber_motor , 50 , 170 , "True" )
+lv_time_2 = 200
+f_delay_1 ()
+lv_base_power_12 = 30
 lv_min_power_12 = 20
 lv_deg_12 = 60
 lv_coef_12 = 1
 f_speedup_4 ()
-f_stop_0 ()
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = 60
-lv_coef_12 = - 1
-f_speedup_4 ()
-f_stop_0 ()
-lv_motor_16 = gv_left_motor
-lv_forward_16 = gv_left_forward * - 1
-lv_deg_16 = 100
-lv_max_power_16 = 20
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
-lv_to_stop_16 = "True"
-f_move_motor_7 ()
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = 560
-lv_coef_12 = - 1
-f_speedup_4 ()
-lv_power_1 = - 30
-f_movement_init_1 ()
-lv_time_2 = 1000
-f_delay_1 ()
-f_stop_0 ()
-EndIf
-gv_d1 = 380
-gv_d2 = 120
-gv_d3 = 60
-If gv_color1 = "black" Then
-lv_motor_16 = gv_left_motor
-lv_forward_16 = gv_left_forward
-lv_deg_16 = 100
-lv_max_power_16 = 20
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
-lv_to_stop_16 = "True"
-f_move_motor_7 ()
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = 110
-lv_coef_12 = 1
-f_speedup_4 ()
-f_stop_0 ()
-Motor.Move ( gv_grabber_motor , - 20 , gv_d1 , "True" )
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = gv_d3
-lv_coef_12 = - 1
-f_speedup_4 ()
-f_stop_0 ()
-Motor.Move ( gv_grabber_motor , 20 , gv_d2 , "True" )
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = 110 - gv_d3
-lv_coef_12 = - 1
-f_speedup_4 ()
-f_stop_0 ()
-Motor.Start ( gv_left_motor , gv_left_forward * - 80 )
-lv_time_2 = 2500
-f_delay_1 ()
-f_stop_0 ()
-ElseIf gv_color1 = "white" Then
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = 600
-lv_coef_12 = 1
-f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 60
+lv_coef_17 = 1
+f_zame_4 ()
 f_stop_0 ()
 lv_motor_16 = gv_left_motor
 lv_forward_16 = gv_left_forward
-lv_deg_16 = 100
-lv_max_power_16 = 20
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
-lv_to_stop_16 = "True"
-f_move_motor_7 ()
-f_stop_0 ()
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = gv_d3
-lv_coef_12 = 1
-f_speedup_4 ()
-f_stop_0 ()
-Motor.Move ( gv_grabber_motor , - 20 , gv_d1 , "True" )
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = gv_d3
-lv_coef_12 = - 1
-f_speedup_4 ()
-f_stop_0 ()
-Motor.Move ( gv_grabber_motor , 20 , gv_d2 , "True" )
-lv_motor_16 = gv_left_motor
-lv_forward_16 = gv_left_forward * - 1
-lv_deg_16 = 100
-lv_max_power_16 = 20
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
-lv_to_stop_16 = "True"
-f_move_motor_7 ()
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = 560
-lv_coef_12 = - 1
-f_speedup_4 ()
-lv_power_1 = - 30
-f_movement_init_1 ()
-lv_time_2 = 1000
-f_delay_1 ()
-f_stop_0 ()
-ElseIf gv_color1 = "red" Then
-lv_motor_16 = gv_right_motor
-lv_forward_16 = gv_right_forward
-lv_deg_16 = 340
+lv_deg_16 = 70
 lv_max_power_16 = 25
 lv_acceleration_16 = "False"
 lv_zame_16 = "False"
 lv_to_stop_16 = "True"
 f_move_motor_7 ()
+Motor.Move ( gv_grabber_motor , 50 , 110 , "True" )
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward * - 1
+lv_deg_16 = 230
+lv_max_power_16 = 20
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_motor_16 = gv_right_motor
+lv_forward_16 = gv_right_forward
+lv_deg_16 = 80
+lv_max_power_16 = 20
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward
+lv_deg_16 = 110
+lv_max_power_16 = 20
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
 lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 500 + gv_d3
+lv_min_power_12 = 20
+lv_deg_12 = 170
+lv_coef_12 = 1
+f_speedup_4 ()
+EndIf
+ElseIf gv_take_chem_in_yellow = "False" Then
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 50
+lv_coef_12 = 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 50
+lv_coef_17 = 1
+f_zame_4 ()
+f_stop_0 ()
+lv_motor_16 = gv_right_motor
+lv_forward_16 = gv_right_forward
+lv_deg_16 = 360
+lv_max_power_16 = 30
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 140
 lv_coef_12 = 1
 f_speedup_4 ()
 f_stop_0 ()
-Motor.Move ( gv_grabber_motor , - 20 , gv_d1 , "True" )
-lv_base_power_12 = 20
+EndIf
+lv_deg_15 = 200
+lv_power_15 = 30
+f_forward_deg_2 ()
+f_reset_0 ()
+While MotorA.GetTacho () * gv_left_forward < 600
+lv_a_10 = 480
+f_ultra_line_1 ()
+EndWhile
+Else
+If gv_is_on_second_blue = "False" Then
+lv_base_power_12 = 40
 lv_min_power_12 = 20
-lv_deg_12 = gv_d3
-lv_coef_12 = - 1
+lv_deg_12 = 100
+lv_coef_12 = 1
 f_speedup_4 ()
-f_stop_0 ()
-Motor.Move ( gv_grabber_motor , 20 , gv_d2 , "True" )
-lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 500
-lv_coef_12 = - 1
-f_speedup_4 ()
-f_stop_0 ()
-Motor.Start ( gv_right_motor , gv_right_forward * - 80 )
-lv_time_2 = 2500
+f_reset_0 ()
+gv_a = Sensor.ReadRawValue ( gv_ultrasonic , 0 )
+gv_deg = 510
+If gv_is_first_blue_object_chem = "True" Then
+gv_deg = gv_deg - 290
+EndIf
+While MotorA.GetTacho () * gv_left_forward < gv_deg - 200
+lv_a_10 = gv_a
+f_ultra_line_1 ()
+EndWhile
+lv_base_power_17 = 40
+lv_min_power_17 = 20
+lv_deg_17 = 100
+lv_coef_17 = 1
+f_zame_4 ()
+lv_time_2 = 200
 f_delay_1 ()
 f_stop_0 ()
-ElseIf gv_color1 = "yellow" Then
-lv_motor_16 = gv_right_motor
-lv_forward_16 = gv_right_forward
+EndIf
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 100
+lv_coef_12 = 1
+f_speedup_4 ()
+f_reset_0 ()
+Sensor.SetMode ( gv_line , 0 )
+gv_a = Sensor.ReadRawValue ( gv_ultrasonic , 0 )
+While MotorA.GetTacho () * gv_left_forward < 330
+lv_a_10 = gv_a
+f_ultra_line_1 ()
+EndWhile
+f_read_percent_1 ()
+gv_p = lv_percent_7
+While gv_p > 20
+f_read_percent_1 ()
+gv_p = lv_percent_7
+lv_a_10 = gv_a
+f_ultra_line_1 ()
+EndWhile
+f_stop_0 ()
+lv_motor_16 = gv_left_motor
+lv_forward_16 = gv_left_forward
 lv_deg_16 = 200
 lv_max_power_16 = 30
-lv_acceleration_16 = "False"
+lv_acceleration_16 = "True"
 lv_zame_16 = "False"
-lv_to_stop_16 = "True"
+lv_to_stop_16 = "Fales"
 f_move_motor_7 ()
-lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 850 + gv_d3
-lv_coef_12 = 1
-f_speedup_4 ()
+Motor.Start ( gv_left_motor , gv_left_forward * 20 )
+f_read_percent_1 ()
+gv_p = lv_percent_7
+While gv_p < 20
+f_read_percent_1 ()
+gv_p = lv_percent_7
+EndWhile
+Motor.Move ( gv_left_motor , gv_left_forward * 20 , 150 , "True" )
 f_stop_0 ()
-Motor.Move ( gv_grabber_motor , - 20 , gv_d1 , "True" )
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = gv_d3
-lv_coef_12 = - 1
-f_speedup_4 ()
-f_stop_0 ()
-Motor.Move ( gv_grabber_motor , 20 , gv_d2 , "True" )
-lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 850
-lv_coef_12 = - 1
-f_speedup_4 ()
-f_stop_0 ()
-MotorB.StartPower ( - 80 * gv_right_forward )
-lv_time_2 = 2500
-f_delay_1 ()
-f_stop_0 ()
-ElseIf gv_color1 = "green" Then
-lv_motor_16 = gv_right_motor
-lv_forward_16 = gv_right_forward
-lv_deg_16 = 120
-lv_max_power_16 = 20
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
-lv_to_stop_16 = "True"
-f_move_motor_7 ()
-lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 1200 + gv_d3
-lv_coef_12 = 1
-f_speedup_4 ()
-f_stop_0 ()
-Motor.Move ( gv_grabber_motor , - 20 , gv_d1 , "True" )
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = gv_d3
-lv_coef_12 = - 1
-f_speedup_4 ()
-f_stop_0 ()
-Motor.Move ( gv_grabber_motor , 20 , gv_d2 , "True" )
-lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 1190
-lv_coef_12 = - 1
-f_speedup_4 ()
-f_stop_0 ()
-MotorB.StartPower ( - 80 * gv_right_forward )
-lv_time_2 = 2500
-f_delay_1 ()
-f_stop_0 ()
-ElseIf gv_color1 = "blue" Then
-lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 1100 + gv_d3
-lv_coef_12 = 1
-f_speedup_4 ()
-f_stop_0 ()
-Motor.Move ( gv_grabber_motor , - 20 , gv_d1 , "True" )
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = gv_d3
-lv_coef_12 = - 1
-f_speedup_4 ()
-f_stop_0 ()
-Motor.Move ( gv_grabber_motor , 20 , gv_d2 , "True" )
-lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 1050
-lv_coef_12 = - 1
-f_speedup_4 ()
-lv_power_1 = - 30
+f_reset_0 ()
+lv_power_1 = 30
 f_movement_init_1 ()
-lv_time_2 = 1000
-f_delay_1 ()
+While MotorA.GetTacho () * gv_left_forward < 200
+lv_l_9 = - 100
+f_line_slow_1 ()
+EndWhile
+f_read_percent_1 ()
+gv_p = lv_percent_7
+While gv_p > 10
+f_read_percent_1 ()
+gv_p = lv_percent_7
+lv_l_9 = - 100
+f_line_slow_1 ()
+EndWhile
 f_stop_0 ()
-EndIf
-gv_d2 = gv_d2 + 0
-If gv_color2 = "black" Then
-Motor.Move ( gv_grabber_motor , - 20 , gv_d2 , "True" )
-ElseIf gv_color2 = "white" Then
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = 600
-lv_coef_12 = 1
-f_speedup_4 ()
-f_stop_0 ()
-Motor.Move ( gv_grabber_motor , - 20 , gv_d2 , "True" )
-ElseIf gv_color2 = "red" Then
 lv_motor_16 = gv_right_motor
 lv_forward_16 = gv_right_forward
-lv_deg_16 = 340
-lv_max_power_16 = 25
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
-lv_to_stop_16 = "True"
-f_move_motor_7 ()
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = 500
-lv_coef_12 = 1
-f_speedup_4 ()
-f_stop_0 ()
-Motor.Move ( gv_grabber_motor , - 20 , gv_d2 , "True" )
-ElseIf gv_color2 = "yellow" Then
-lv_motor_16 = gv_right_motor
-lv_forward_16 = gv_right_forward
-lv_deg_16 = 200
+lv_deg_16 = 390
 lv_max_power_16 = 30
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
-lv_to_stop_16 = "True"
-f_move_motor_7 ()
-lv_base_power_12 = 20
-lv_min_power_12 = 20
-lv_deg_12 = 850
-lv_coef_12 = 1
-f_speedup_4 ()
-f_stop_0 ()
-Motor.Move ( gv_grabber_motor , - 20 , gv_d2 , "True" )
-ElseIf gv_color2 = "green" Then
-lv_motor_16 = gv_right_motor
-lv_forward_16 = gv_right_forward
-lv_deg_16 = 120
-lv_max_power_16 = 20
-lv_acceleration_16 = "False"
-lv_zame_16 = "False"
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
 lv_to_stop_16 = "True"
 f_move_motor_7 ()
 lv_base_power_12 = 30
-lv_min_power_12 = 30
-lv_deg_12 = 1200 + gv_d3
+lv_min_power_12 = 20
+lv_deg_12 = 42
 lv_coef_12 = 1
 f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 42
+lv_coef_17 = 1
+f_zame_4 ()
+EndIf
 f_stop_0 ()
-Motor.Move ( gv_grabber_motor , - 20 , gv_d2 , "True" )
-ElseIf gv_color2 = "blue" Then
+Motor.Move ( gv_grabber_motor , - 50 , 120 , "True" )
+If gv_start = "left" Then
+lv_is_inverted_26 = "False"
+f_from_protected_to_finish_1 ()
+lv_is_inverted_27 = "False"
+f_take_cubes_1 ()
+lv_long_24 = gv_brown_man
+lv_near_24 = gv_red_man
+lv_should_move_backward_24 = "True"
+lv_is_inverted_24 = "False"
+f_deliver_group_4 ()
+lv_long_24 = gv_white_man
+lv_near_24 = gv_yellow_man
+lv_should_move_backward_24 = "True"
+lv_is_inverted_24 = "False"
+f_deliver_group_4 ()
+lv_long_24 = gv_blue_man
+lv_near_24 = gv_green_man
+lv_should_move_backward_24 = "False"
+lv_is_inverted_24 = "False"
+f_deliver_group_4 ()
+lv_is_inverted_28 = "False"
+f_finish_after_deliveries_1 ()
+Else
+lv_is_inverted_26 = "True"
+f_from_protected_to_finish_1 ()
+lv_is_inverted_27 = "True"
+f_take_cubes_1 ()
+lv_long_24 = gv_blue_man
+lv_near_24 = gv_green_man
+lv_should_move_backward_24 = "True"
+lv_is_inverted_24 = "True"
+f_deliver_group_4 ()
+lv_long_24 = gv_white_man
+lv_near_24 = gv_yellow_man
+lv_should_move_backward_24 = "True"
+lv_is_inverted_24 = "True"
+f_deliver_group_4 ()
+lv_long_24 = gv_brown_man
+lv_near_24 = gv_red_man
+lv_should_move_backward_24 = "False"
+lv_is_inverted_24 = "True"
+f_deliver_group_4 ()
+lv_is_inverted_28 = "True"
+f_finish_after_deliveries_1 ()
+EndIf
 lv_base_power_12 = 20
 lv_min_power_12 = 20
-lv_deg_12 = 1100 + gv_d3
+lv_deg_12 = 20
 lv_coef_12 = 1
 f_speedup_4 ()
 f_stop_0 ()
-Motor.Move ( gv_grabber_motor , - 20 , gv_d2 , "True" )
-EndIf
-Motor.Move ( gv_grabber_motor , - 100 , 10 , "True" )
+f_beep_0 ()
+lv_to_delay_29 = "True"
+f_show_time_1 ()
 EndSub
 Sub f_movement_init_1
 MotorA.StartPower ( lv_power_1 * gv_left_forward )
@@ -1127,6 +2013,17 @@ MotorA.SetPower ( lv_left_power_9 * gv_left_forward )
 MotorB.SetPower ( lv_right_power_9 * gv_right_forward )
 gv_last_err = lv_err_9
 Program.Delay ( 5 )
+EndSub
+Sub f_ultra_line_1
+lv_l_10 = Sensor.ReadRawValue ( gv_ultrasonic , 0 )
+lv_err_10 = lv_l_10 - lv_a_10
+lv_diff_10 = lv_err_10 - gv_last_err
+lv_delta_10 = lv_err_10 * 0.8 + lv_diff_10 * 0
+lv_left_power_10 = 40 - lv_delta_10
+lv_right_power_10 = 40 + lv_delta_10
+MotorA.SetPower ( lv_left_power_10 * gv_left_forward )
+MotorB.SetPower ( lv_right_power_10 * gv_right_forward )
+gv_last_err = lv_err_10
 EndSub
 Sub f_speedup_4
 lv_power_1 = 15
@@ -1240,6 +2137,58 @@ MotorA.SetPower ( lv_left_power_17 * gv_left_forward * lv_coef_17 )
 MotorB.SetPower ( lv_right_power_17 * gv_right_forward * lv_coef_17 )
 Program.Delay ( 10 )
 EndWhile
+EndSub
+Sub f_take_chem_on_left_1
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 80
+lv_coef_12 = - 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 80
+lv_coef_17 = - 1
+f_zame_4 ()
+f_stop_0 ()
+Motor.Move ( gv_grabber_motor , 50 , 170 , "True" )
+lv_motor_16 = gv_right_motor
+lv_forward_16 = gv_right_forward
+lv_deg_16 = 130
+lv_max_power_16 = 20
+lv_acceleration_16 = "False"
+lv_zame_16 = "False"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+Motor.Move ( gv_grabber_motor , 50 , 110 , "True" )
+lv_motor_16 = gv_right_motor
+lv_forward_16 = gv_right_forward * - 1
+lv_deg_16 = 125
+lv_max_power_16 = 20
+lv_acceleration_16 = "False"
+lv_zame_16 = "False"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_time_2 = 200
+f_delay_1 ()
+If lv_finish_forward_18 = "True" Then
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 160
+lv_coef_12 = 1
+f_speedup_4 ()
+Else
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 30
+lv_coef_12 = 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 30
+lv_coef_17 = 1
+f_zame_4 ()
+f_stop_0 ()
+EndIf
 EndSub
 Sub f_open_cubes_1
 Motor.Start ( gv_water_motor , 50 * lv_coef_19 )
@@ -1374,6 +2323,22 @@ lv_coef_12 = - 1
 f_speedup_4 ()
 f_stop_0 ()
 EndSub
+Sub f_deliver_group_4
+lv_minus_deg_24 = 0
+If lv_long_24 = "True" Then
+lv_is_inverted_21 = lv_is_inverted_24
+f_deliver_long_1 ()
+EndIf
+If lv_near_24 = "True" Then
+lv_is_inverted_22 = lv_is_inverted_24
+f_deliver_near_2 ()
+lv_minus_deg_24 = lv_minus_deg_22
+EndIf
+If lv_should_move_backward_24 = "True" Then
+lv_minus_deg_23 = lv_minus_deg_24
+f_move_to_next_zone_1 ()
+EndIf
+EndSub
 Sub f_get_motors_6
 If lv_is_inverted_25 = "False" Then
 lv_motor1_25 = gv_left_motor
@@ -1387,5 +2352,195 @@ lv_motor2_25 = gv_left_motor
 lv_forward1_25 = gv_right_forward
 lv_forward2_25 = gv_left_forward
 lv_coef_25 = - 1
+EndIf
+EndSub
+Sub f_from_protected_to_finish_1
+lv_is_inverted_25 = lv_is_inverted_26
+f_get_motors_6 ()
+lv_motor1_26 = lv_motor1_25
+lv_motor2_26 = lv_motor2_25
+lv_forward1_26 = lv_forward1_25
+lv_forward2_26 = lv_forward2_25
+lv_coef_26 = lv_coef_25
+lv_base_power_12 = 50
+lv_min_power_12 = 20
+lv_deg_12 = 300
+lv_coef_12 = - 1
+f_speedup_4 ()
+Motor.Stop ( lv_motor1_26 , "True" )
+lv_motor_16 = lv_motor2_26
+lv_forward_16 = lv_forward2_26 * - 1
+lv_deg_16 = 330
+lv_max_power_16 = 50
+lv_acceleration_16 = "False"
+lv_zame_16 = "False"
+lv_to_stop_16 = "False"
+f_move_motor_7 ()
+lv_power_1 = - 50
+f_movement_init_1 ()
+lv_time_2 = 1700
+f_delay_1 ()
+f_stop_0 ()
+Thread.Run = f_prepare_grabber_0
+Motor.Start ( lv_motor2_26 , lv_forward2_26 * 30 )
+lv_time_2 = 1500
+f_delay_1 ()
+Motor.Stop ( lv_motor2_26 , "True" )
+f_reset_0 ()
+Motor.Start ( lv_motor1_26 , 40 * lv_forward1_26 )
+Motor.Start ( lv_motor2_26 , 50 * lv_forward2_26 )
+While Motor.GetCount ( lv_motor1_26 ) * lv_forward1_26 < 1000
+EndWhile
+Motor.Start ( lv_motor1_26 , 40 * lv_forward1_26 )
+Motor.Start ( lv_motor2_26 , 60 * lv_forward2_26 )
+Program.Delay ( 1200 )
+f_stop_0 ()
+EndSub
+Sub f_take_cubes_1
+Sensor.SetMode ( gv_line , 0 )
+lv_is_inverted_25 = lv_is_inverted_27
+f_get_motors_6 ()
+lv_motor1_27 = lv_motor1_25
+lv_motor2_27 = lv_motor2_25
+lv_forward1_27 = lv_forward1_25
+lv_forward2_27 = lv_forward2_25
+lv_coef_27 = lv_coef_25
+lv_coef_19 = lv_coef_27
+f_open_cubes_1 ()
+lv_base_power_12 = 30
+lv_min_power_12 = 20
+lv_deg_12 = 80
+lv_coef_12 = - 1
+f_speedup_4 ()
+lv_base_power_17 = 30
+lv_min_power_17 = 20
+lv_deg_17 = 75
+lv_coef_17 = - 1
+f_zame_4 ()
+f_stop_0 ()
+lv_motor_16 = lv_motor2_27
+lv_forward_16 = lv_forward2_27 * - 1
+lv_deg_16 = 180
+lv_max_power_16 = 30
+lv_acceleration_16 = "True"
+lv_zame_16 = "False"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_motor_16 = lv_motor1_27
+lv_forward_16 = lv_forward1_27
+lv_deg_16 = 40
+lv_max_power_16 = 30
+lv_acceleration_16 = "False"
+lv_zame_16 = "False"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+Motor.Start ( lv_motor2_27 , lv_forward2_27 * - 30 )
+lv_time_2 = 700
+f_delay_1 ()
+f_stop_0 ()
+Motor.Start ( lv_motor1_27 , lv_forward1_27 * - 40 )
+lv_time_2 = 700
+f_delay_1 ()
+f_stop_0 ()
+f_reset_0 ()
+lv_base_power_12 = 50
+lv_min_power_12 = 20
+lv_deg_12 = 120
+lv_coef_12 = 1
+f_speedup_4 ()
+lv_deg_15 = 1000 - 240
+lv_power_15 = 50
+f_forward_deg_2 ()
+lv_base_power_17 = 50
+lv_min_power_17 = 30
+lv_deg_17 = 100
+lv_coef_17 = 1
+f_zame_4 ()
+f_stop_0 ()
+lv_coef_20 = lv_coef_27
+f_close_cubes_1 ()
+lv_motor_16 = lv_motor2_27
+lv_forward_16 = lv_forward2_27 * - 1
+lv_deg_16 = 250
+lv_max_power_16 = 30
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_motor_16 = lv_motor1_27
+lv_forward_16 = lv_forward1_27 * - 1
+lv_deg_16 = 250
+lv_max_power_16 = 30
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+f_reset_0 ()
+lv_power_1 = - 30
+f_movement_init_1 ()
+If lv_is_inverted_27 = "False" Then
+f_read_percent_1 ()
+lv_p_27 = lv_percent_7
+While Math.Abs ( MotorA.GetTacho () ) < 20 Or lv_p_27 > 20
+f_read_percent_1 ()
+lv_p_27 = lv_percent_7
+EndWhile
+Else
+Sensor.SetMode ( gv_line , 4 )
+Sensor.Wait ( gv_line )
+lv_rgb_27 = Sensor.ReadRaw ( gv_line , 3 )
+While lv_rgb_27 [ 1 ] > 50
+lv_rgb_27 = Sensor.ReadRaw ( gv_line , 3 )
+EndWhile
+Sensor.SetMode ( gv_line , 0 )
+EndIf
+f_stop_0 ()
+EndSub
+Sub f_finish_after_deliveries_1
+lv_is_inverted_25 = lv_is_inverted_28
+f_get_motors_6 ()
+lv_motor1_28 = lv_motor1_25
+lv_motor2_28 = lv_motor2_25
+lv_forward1_28 = lv_forward1_25
+lv_forward2_28 = lv_forward2_25
+lv_coef_28 = lv_coef_25
+lv_power_1 = - 40
+f_movement_init_1 ()
+lv_time_2 = 1500
+f_delay_1 ()
+f_stop_0 ()
+lv_motor_16 = lv_motor1_28
+lv_forward_16 = lv_forward1_28
+lv_deg_16 = 210
+lv_max_power_16 = 30
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_motor_16 = lv_motor2_28
+lv_forward_16 = lv_forward2_28 * - 1
+lv_deg_16 = 150
+lv_max_power_16 = 30
+lv_acceleration_16 = "True"
+lv_zame_16 = "True"
+lv_to_stop_16 = "True"
+f_move_motor_7 ()
+lv_power_1 = - 40
+f_movement_init_1 ()
+lv_time_2 = 1500
+f_delay_1 ()
+f_stop_0 ()
+EndSub
+Sub f_show_time_1
+lv_millisecond_29 = Time.Get9 ()
+lv_seconds_29 = Math.Floor ( lv_millisecond_29 / 1000 )
+lv_minutes_29 = Math.Floor ( lv_seconds_29 / 60 )
+lv_seconds_29 = Math.Remainder ( lv_seconds_29 , 60 )
+lv_text_29 = lv_minutes_29 + ":" + lv_seconds_29
+lv_text_6 = lv_text_29
+f_text_to_screen_1 ()
+If lv_to_delay_29 = "True" Then
+lv_time_2 = 100000
+f_delay_1 ()
 EndIf
 EndSub

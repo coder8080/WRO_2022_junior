@@ -1,0 +1,700 @@
+line = 1
+left_sensor = 2
+right_sensor = 3
+ultrasonic = 4
+left_motor = "A"
+right_motor = "B"
+not_inverted_motor = "B"
+motors = left_motor + right_motor
+left_forward = -1
+right_forward = 1
+grabber_motor = "C"
+water_motor = "D"
+left_max = 37
+left_min = 4
+
+last_err = 0
+last_motor_err = 0
+
+brown = "False"
+red = "False"
+yellow = "False"
+green = "False"
+blue = "False"
+white = "False"
+
+brown_man = "False"
+red_man = "False"
+yellow_man = "False"
+green_man = "False"
+blue_man = "False"
+white_man = "False"
+
+water_state = 0
+fire_count = 0
+men_count = 0
+chem = "False"
+
+take_chem_in_yellow = "False"
+cubes_count = 2
+r = 0
+g = 0
+b = 0
+w = 0
+
+Sensor.SetMode(line, 0)
+Sensor.SetMode(left_sensor, 1)
+Sensor.SetMode(right_sensor, 1)
+Sensor.SetMode(ultrasonic, 0)
+
+' Уведомить о низком заряде батареи
+If EV3.BatteryVoltage < 8 Then
+  beep()
+  Speaker.Wait()
+  beep()
+EndIf
+
+' --- Утилитарные функции ---
+
+' Инициализация движения (старт моторов)
+Function movement_init(in number power)
+  MotorA.StartPower(power * @left_forward)
+  MotorB.StartPower(power * @right_forward)
+EndFunction
+
+' Издать звук
+Sub beep
+  Speaker.Tone(100, 500, 200)
+EndSub
+
+' Задержка
+Function delay(in number time)
+  Program.Delay(time)
+EndFunction
+
+' Сброс энкодеров моторов
+Function reset()
+  MotorA.ResetCount()
+  MotorB.ResetCount()
+EndFunction
+
+' Остановка моторов
+Function stop()
+  MotorAB.OffAndBrake()
+EndFunction
+
+' Считать значение с датчика в нужном режиме и перевести его обратно
+Function read_mode(in number port, in number mode, in number d, out number result)
+  current_mode = Sensor.GetMode(port)
+  If current_mode <> mode Then
+    Sensor.SetMode(port, mode)
+    Sensor.Wait(port)
+  EndIf
+  If d > 0 Then
+    delay(d)
+  EndIf
+  result = Sensor.ReadRawValue(port, 0)
+  Sensor.SetMode(port, 1)
+EndFunction
+
+Function text_to_screen(in string text)
+  LCD.StopUpdate()
+  LCD.Clear()
+  LCD.Text(1, 0, 0, 2, text)
+  LCD.Update()
+EndFunction
+
+' --- Движение по линии ---
+
+' Считать процент с датчика линии
+Function read_percent(out number percent)
+  If Sensor.GetMode(@line) <> 0 Then
+    Sensor.SetMode(@line, 0)
+    Sensor.Wait(@line)
+  EndIf
+  percent = (Sensor.ReadPercent(@line) - @left_min) / (@left_max - @left_min) * 100
+EndFunction
+
+' Линия
+Function line(in number l)
+  cur = 0
+  If l = -100 Then
+    read_percent(cur)
+  Else
+    cur = l
+  EndIf
+  err = cur - 50
+  diff = err - @last_err
+  delta = err * 1 + diff * 7
+  left_power = 80 - delta
+  right_power = 80 + delta
+  MotorA.SetPower(left_power * @left_forward)
+  MotorB.SetPower(right_power * @right_forward)
+  @last_err = err
+  Program.Delay(5)
+EndFunction
+
+' Медленная линия
+Function line_slow(in number l)
+  cur = 0
+  If l = -100 Then
+    read_percent(cur)
+  Else
+    cur = l
+  EndIf
+  err = cur - 50
+  diff = err - @last_err
+  delta = err * 0.5 + diff * 0
+  left_power = 30 - delta
+  right_power = 30 + delta
+  MotorA.SetPower(left_power * @left_forward)
+  MotorB.SetPower(right_power * @right_forward)
+  @last_err = err
+  Program.Delay(5)
+EndFunction
+
+' Линия по ультразвуку (по стенке)
+Function ultra_line(in number a)
+  l = Sensor.ReadRawValue(@ultrasonic, 0)
+  err = l - a
+  diff = err - @last_err
+  delta = err * 0.8 + diff * 0
+  left_power = 80 - delta
+  right_power = 80 + delta
+  MotorA.SetPower(left_power * @left_forward)
+  MotorB.SetPower(right_power * @right_forward)
+  @last_err = err
+EndFunction
+
+' Бесконечное движение по линии (для отладки)
+Function endless_line()
+  MotorA.StartPower(80 * @left_forward)
+  MotorB.StartPower(80 * @right_forward)
+  While "True"
+    line(-100)
+  EndWhile
+EndFunction
+
+' -- Движение по синхронизации & плавные разгоны ---
+
+' Плавный разгон
+Function speedup(in number base_power, in number min_power, in number deg, in number coef)
+  movement_init(15)
+  reset()
+  Time.Reset2()
+  l = 0
+  While l < deg
+    If Time.Get2() > 1000 And l < 20 Then
+      beep()
+      min_power = min_power + 5
+      Time.Reset2()
+    EndIf
+    'p = l / deg
+    p = Math.Power(l, 0.5) / Math.Power(deg, 0.5)
+    power = (base_power - min_power) * p + min_power
+    l = MotorA.GetTacho() * @left_forward * coef
+    r = MotorB.GetTacho() * @right_forward * coef
+    delta = (l - r) * p
+    left_power = power - delta
+    right_power = power + delta
+    MotorA.SetPower(left_power * @left_forward * coef)
+    MotorB.SetPower(right_power * @right_forward * coef)
+  EndWhile
+EndFunction
+
+' Плавный разгон
+Function speedup_new(in number base_power, in number min_power, in number deg, in number coef)
+  movement_init(15)
+  reset()
+  Time.Reset2()
+  l = 0
+  While l < deg
+    If Time.Get2() > 1000 And l < 20 Then
+      min_power = min_power + 5
+    EndIf
+    p = l / deg
+    ''power = Math.Power((2 * 16 * l + Math.Power(min_power, 2)),0.5)
+    'power = Math.Power((l - min_power), 0.5)
+    p = Math.Power(l, 0.5) / Math.Power(deg, 0.5)
+    power = (base_power - min_power) * p + min_power
+    l = MotorA.GetTacho() * @left_forward * coef
+    r = MotorB.GetTacho() * @right_forward * coef
+    'delta = (l - r) * p
+    delta = 0
+    left_power = power - delta
+    right_power = power + delta
+    MotorA.SetPower(left_power * @left_forward * coef)
+    MotorB.SetPower(right_power * @right_forward * coef)
+  EndWhile
+EndFunction
+
+' Одна итерация цикла синхронизации моторов
+Function sync(in number power)
+  l = MotorA.GetTacho() * @left_forward
+  r = MotorB.GetTacho() * @right_forward
+  err = l - r
+  diff = err - @last_err
+  delta = err * 1 + diff * 0
+  left_power = power - delta
+  right_power = power + delta
+  MotorA.SetPower(left_power * @left_forward)
+  MotorB.Setpower(right_power * @right_forward)
+  @last_err = err
+EndFunction
+
+' Проезд вперёд на постоянной мощности с синхронизацией моторов
+Function forward_deg(in number deg, in number power)
+  movement_init(power)
+  reset()
+  l = MotorA.GetTacho() * @left_forward
+  While Math.Abs(l) < Math.Abs(deg)
+    sync(power)
+    l = MotorA.GetTacho() * @left_forward
+  EndWhile
+EndFunction
+
+' Движение одного мотора
+Function move_motor(in string motor, in number forward, in number deg, in number max_power, in string acceleration, in string zame, in string to_stop)
+  normal_deg = deg
+  acceleration_deg = 0
+  zame_deg = 0
+  If acceleration = "True" Then
+    acceleration_deg = Math.Min(Math.Floor(deg / 2), 120)
+    normal_deg = normal_deg - acceleration_deg
+  EndIf
+  If zame = "True" Then
+    zame_deg = Math.Min(Math.Floor(deg / 2), 120)
+    normal_deg = normal_deg - zame_deg
+  EndIf
+  
+  If acceleration = "True" Then
+    Motor.ResetCount(motor)
+    m = 0
+    min_power = 10
+    Time.Reset1()
+    While m < acceleration_deg
+      ' Защита от застревания
+      If Time.Get1() > 700 And m < 20 Then
+        beep()
+        min_power = min_power + 5
+        acceleration_deg = acceleration_deg
+        Time.Reset1()
+      EndIf
+      p = m / acceleration_deg
+      power = (max_power - min_power) * p + min_power
+      Motor.Start(motor, power * forward)
+      m = Motor.GetCount(motor) * forward
+      Program.Delay(10)
+    EndWhile
+  EndIf
+  If normal_deg > 0 Then
+    Motor.Move(motor, max_power * forward, normal_deg, "False")
+  EndIf
+  If zame = "True" Then
+    Motor.ResetCount(motor)
+    m = 0
+    While m < zame_deg
+      p = 1 - (m / zame_deg)
+      power = (max_power - 10) * p + 10
+      Motor.Start(motor, power * forward)
+      m = Motor.GetCount(motor) * forward
+      Program.Delay(10)
+    EndWhile
+  EndIf
+  If to_stop = "True" Then
+    Motor.Stop(motor, "True")
+  EndIf
+EndFunction
+
+' Замедление
+Function zame(in number base_power, in number min_power, in number deg, in number coef)
+  movement_init(base_power)
+  reset()
+  l = 0
+  While l < deg
+    p = l / deg
+    l = MotorA.GetTacho() * @left_forward * coef
+    r = MotorB.GetTacho() * @right_forward * coef
+    delta = (l - r) * (1 - p)
+    power = (base_power - min_power) * (1 - p) + min_power
+    left_power = power - delta
+    right_power = power + delta
+    MotorA.SetPower(left_power * @left_forward * coef)
+    MotorB.SetPower(right_power * @right_forward * coef)
+    Program.Delay(10)
+  EndWhile
+EndFunction
+
+' --- Заборы химиката ---
+
+' Забрать химикат справа
+Sub take_chem_on_right
+  'speedup(30, 20, 50, -1)
+  'zame(30, 20, 50, -1)
+  'MotorA.OffAndBrake()
+  'move_motor(right_motor, right_forward * -1, 100, 30, "False", "True", "True")
+  'Motor.Move(grabber_motor, 50, 170, "True")
+  'speedup(30, 20, 50, 1)
+  'zame(30, 20, 50, 1)
+  'stop()
+  'Motor.Move(grabber_motor, 50, 110, "True")
+  'speedup(30, 20, 60, -1)
+  'zame(30, 15, 60, -1)
+  'stop()
+  'delay(300)
+  'move_motor(right_motor, right_forward, 85, 30, "True", "True", "True")
+  'stop()
+  'delay(300)
+  'speedup(30, 20, 100, 1)
+  'chem = "True"
+  
+  speedup(30, 20, 80, -1)
+  zame(30, 20, 80, -1)
+  stop()
+  Motor.Move(@grabber_motor, 50, 170, "True")
+  move_motor(@left_motor, @left_forward, 130, 20, "False", "False", "True")
+  Motor.Move(@grabber_motor, 50, 110, "True")
+  ' 130
+  move_motor(@left_motor, @left_forward * -1, 125, 20, "False", "False", "True")
+  delay(200)
+  speedup(30, 20, 160, 1)
+EndSub
+
+' Забрать химикат слева
+Function take_chem_on_left(in string finish_forward)
+  'speedup(30, 20, 50, -1)
+  'zame(30, 20, 50, -1)
+  'MotorB.OffAndBrake()
+  'move_motor(@left_motor, @left_forward * -1, 100, 30, "False", "True", "True")
+  'Motor.Move(@grabber_motor, 50, 170, "True")
+  'speedup(30, 20, 50, 1)
+  'zame(30, 20, 50, 1)
+  'stop()
+  'Motor.Move(@grabber_motor, 50, 110, "True")
+  'speedup(30, 20, 60, -1)
+  'zame(30, 15, 60, -1)
+  'stop()
+  'delay(300)
+  'move_motor(@left_motor, @left_forward, 85, 30, "True", "True", "True")
+  'stop()
+  'delay(300)
+  'If finish_forward = "True" Then
+  'speedup(30, 20, 100, 1)
+  'EndIf
+  'chem = "True"
+  
+  speedup(30, 20, 80, -1)
+  zame(30, 20, 80, -1)
+  stop()
+  Motor.Move(@grabber_motor, 50, 170, "True")
+  move_motor(@right_motor, @right_forward, 130, 20, "False", "False", "True")
+  Motor.Move(@grabber_motor, 50, 110, "True")
+  ' 130
+  move_motor(@right_motor, @right_forward * -1, 125, 20, "False", "False", "True")
+  delay(200)
+  If finish_forward = "True" Then
+    speedup(30, 20, 160, 1)
+  Else
+    speedup(30, 20, 30, 1)
+    zame(30, 20, 30, 1)
+    stop()
+  EndIf
+EndFunction
+
+' --- Развозы ---
+
+' Открыть заслонку
+Function open_cubes(in number coef)
+  Motor.Start(@water_motor, 50 * coef)
+  Program.Delay(500)
+  Motor.Stop(@water_motor, "True")
+EndFunction
+
+' Закрыть заслонку
+Function close_cubes(in number coef)
+  Motor.Move(@water_motor, -30 * coef, 90, "True")
+EndFunction
+
+' Отвезти куб в дальнюю зону
+Function deliver_long(in string is_inverted)
+  If is_inverted = "False" Then
+    mot = @right_motor
+    forward = @right_forward
+    coef = 1
+  Else
+    mot = @left_motor
+    forward = @left_forward
+    coef = -1
+  EndIf
+  If @cubes_count = 2 Then
+    open_cubes(coef)
+    move_motor(mot, forward, 270, 30, "True", "True", "True")
+    delay(200)
+    move_motor(mot, forward * -1, 120, 20, "True", "True", "True")
+    close_cubes(coef)
+    move_motor(mot, forward * -1, 265 - 120, 20, "True", "True", "True")
+    @cubes_count = 1
+  Else
+    speedup(20, 20, 30, 1)
+    stop()
+    move_motor(mot, forward, 360, 30, "True", "True", "True")
+    movement_init(30)
+    delay(300)
+    stop()
+    open_cubes(coef)
+    speedup(30, 20, 45, -1)
+    zame(30, 20, 45, -1)
+    stop()
+    move_motor(mot, forward * -1, 360, 30, "True", "True", "True")
+    speedup(20, 20, 30, -1)
+    @cubes_count = 0
+  EndIf
+EndFunction
+
+' Отвезти куб в ближнюю зону
+Function deliver_near(in string is_inverted, out number minus_deg)
+  If is_inverted = "False" Then
+    coef = 1
+  Else
+    coef = -1
+  EndIf
+  minus_deg = 0
+  open_cubes(coef)
+  If @cubes_count = 2 Then
+    speedup(30, 30, 45, -1)
+    stop()
+    close_cubes(coef)
+    @cubes_count = 1
+    minus_deg = 45
+  EndIf
+  stop()
+  @cubes_count = @cubes_count - 1
+EndFunction
+
+' Отъехать назад к следующей группе зон
+Function move_to_next_zone(in number minus_deg)
+  stop()
+  deg = 205 - minus_deg
+  speedup(20, 20, deg, -1)
+  stop()
+EndFunction
+
+' Обработать группу из двух зон
+Function deliver_group(in string long, in string near, in string should_move_backward, in string is_inverted)
+  minus_deg = 0
+  If long = "True" Then
+    deliver_long(is_inverted)
+  EndIf
+  If near = "True" Then
+    deliver_near(is_inverted, minus_deg)
+  EndIf
+  If should_move_backward = "True" Then
+    move_to_next_zone(minus_deg)
+  EndIf
+EndFunction
+
+' Инвертация моторов
+Function get_motors(in string is_inverted, out string motor1, out string motor2, out number forward1, out number forward2, out number coef)
+  If is_inverted = "False" Then
+    motor1 = @left_motor
+    motor2 = @right_motor
+    forward1 = @left_forward
+    forward2 = @right_forward
+    coef = 1
+  Else
+    motor1 = @right_motor
+    motor2 = @left_motor
+    forward1 = @right_forward
+    forward2 = @left_forward
+    coef = -1
+  EndIf
+EndFunction
+
+' Переезд
+Function from_protected_to_finish(in string is_inverted)
+  get_motors(is_inverted, motor1, motor2, forward1, forward2, coef)
+  
+  ' 100
+  speedup(50, 20, 300, -1)
+  Motor.Stop(motor1, "True")
+  move_motor(motor2, forward2 * -1, 330, 50, "False", "False", "False")
+  movement_init(-50)
+  delay(1700)
+  stop()
+  Thread.Run = prepare_grabber
+  
+  'move_motor(motor2, forward2, 410, 50, "True", "True", "True")
+  
+  Motor.Start(motor2, forward2 * 30)
+  delay(1500)
+  Motor.Stop(motor2, "True")
+  
+  reset()
+  Motor.Start(motor1, 40 * forward1)
+  Motor.Start(motor2, 50 * forward2)
+  While Motor.GetCount(motor1) * forward1 < 1000
+  EndWhile
+  Motor.Start(motor1, 40 * forward1)
+  Motor.Start(motor2, 60 * forward2)
+  Program.Delay(1200)
+  stop()
+EndFunction
+
+' Забрать кубы
+Function take_cubes(in string is_inverted)
+  Sensor.SetMode(@line, 0)
+  get_motors(is_inverted, motor1, motor2, forward1, forward2, coef)
+  open_cubes(coef)
+  speedup(30, 20, 80, -1)
+  zame(30, 20, 75, -1)
+  stop()
+  move_motor(motor2, forward2 * -1, 180, 30, "True", "False", "True")
+  move_motor(motor1, forward1, 40, 30, "False", "False", "True")
+  Motor.Start(motor2, forward2 * -30)
+  delay(700)
+  stop()
+  Motor.Start(motor1, forward1 * -40)
+  delay(700)
+  stop()
+  reset()
+  speedup(50, 20, 120, 1)
+  forward_deg(1000 - 240, 50)
+  zame(50, 30, 100, 1)
+  stop()
+  close_cubes(coef)
+  move_motor(motor2, forward2 * -1, 250, 30, "True", "True", "True")
+  move_motor(motor1, forward1 * -1, 250, 30, "True", "True", "True")
+  reset()
+  movement_init(-30)
+  If is_inverted = "False" Then
+    read_percent(p)
+    While Math.Abs(MotorA.GetTacho()) < 20 Or p > 20
+      read_percent(p)
+    EndWhile
+  Else
+    Sensor.SetMode(@line, 4)
+    Sensor.Wait(@line)
+    rgb = Sensor.ReadRaw(@line, 3)
+    While rgb[1] > 50
+      rgb = Sensor.ReadRaw(@line, 3)
+    EndWhile
+    Sensor.SetMode(@line, 0)
+  EndIf
+  stop()
+EndFunction
+
+' Финишировать после развозов
+Function finish_after_deliveries(in string is_inverted)
+  get_motors(is_inverted, motor1, motor2, forward1, forward2, coef)
+  
+  movement_init(-40)
+  delay(1500)
+  stop()
+  move_motor(motor1, forward1, 210, 30, "True", "True", "True")
+  move_motor(motor2, forward2 * -1, 150, 30, "True", "True", "True")
+  movement_init(-40)
+  delay(1500)
+  stop()
+EndFunction
+
+' --- Другое ---
+
+' Вывести на экран время выполнения программы
+Function show_time(in string to_delay)
+  millisecond = Time.Get9()
+  seconds = Math.Floor(millisecond / 1000)
+  minutes = Math.Floor(seconds / 60)
+  seconds = Math.Remainder(seconds, 60)
+  text = minutes + ":" + seconds
+  text_to_screen(text)
+  If to_delay = "True" Then
+    delay(100000)
+  EndIf
+EndFunction
+
+' Выбросить воду
+Sub kick_water
+  If water_state = 0 Then
+    Motor.Start(water_motor, 50)
+    Program.Delay(500)
+    Motor.Stop(water_motor, "True")
+    Motor.Move(water_motor, -50, 20, "True")
+    water_state = 1
+  Else
+    Motor.Start(water_motor, -50)
+    Program.Delay(500)
+    Motor.Stop(water_motor, "True")
+    Motor.Move(water_motor, 50, 20, "True")
+  EndIf
+EndSub
+
+Sub prepare_grabber
+  Motor.Start(grabber_motor, -20)
+  Delay(1000)
+  Motor.Stop(grabber_motor, "True")
+  Motor.Move(grabber_motor, 50, 50, "True")
+EndSub
+
+Sub main
+  min_power = 15
+  base_power = 100
+  deg = 360
+  all_time = 680
+  movement_init(min_power)
+  reset()
+  Time.Reset1()
+  Time.Reset2()
+  chart[-1] = -1
+  l = 0
+  While l < deg
+    If Time.Get2() > 1000 And l < 20 Then
+      beep()
+      min_power = min_power + 5
+      Time.Reset2()
+    EndIf
+    n = 0.5
+    p = Math.Power(l, n) / Math.Power(deg, n)
+    'p = l / deg
+    power = (base_power - min_power) * p + min_power
+    l = MotorA.GetTacho() * @left_forward
+    r = MotorB.GetTacho() * @right_forward
+    delta = (l - r) * p
+    left_power = power - delta
+    right_power = power + delta
+    MotorA.SetPower(left_power * @left_forward)
+    MotorB.SetPower(right_power * @right_forward)
+    index = Time.Get1() / all_time * 178
+    value = power / base_power * 128
+    chart[index] = value
+  EndWhile
+  'LCD.Clear()
+  'LCD.Text(1, 0, 0, 2, Time.Get1())
+  stop()
+  LCD.Clear()
+  For i = 0 To 178
+    LCD.Pixel(1, i, chart[i])
+  EndFor
+  
+  Buttons.Wait()
+EndSub
+main()
+'reset()
+'speedup(80, 20, 100, 1)
+'d = 0
+'While d < 400
+  'l = Sensor.ReadRawValue(@ultrasonic, 0)
+  ''a = Math.Round((d / 500 * (95 - 93)) + 93)
+  'a = 102
+  'err = l - a
+  'diff = err - @last_err
+  'delta = err * 1 + diff * 0
+  'left_power = 80 - delta
+  'right_power = 80 + delta
+  'MotorA.SetPower(left_power * @left_forward)
+  'MotorB.SetPower(right_power * @right_forward)
+  'd = MotorA.GetTacho() * left_forward
+  '@last_err = err
+'EndWhile
+'movement_init(80)
+'delay(1000)
+'stop()

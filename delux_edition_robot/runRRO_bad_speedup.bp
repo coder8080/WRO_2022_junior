@@ -10,7 +10,7 @@ left_forward = -1
 right_forward = 1
 grabber_motor = "C"
 water_motor = "D"
-left_max = 37
+left_max = 45
 left_min = 4
 
 last_err = 0
@@ -97,18 +97,12 @@ Function read_mode(in number port, in number mode, in number d, out number resul
   Sensor.SetMode(port, 1)
 EndFunction
 
-' Вывести текст на экран
 Function text_to_screen(in string text)
   LCD.StopUpdate()
   LCD.Clear()
   LCD.Text(1, 0, 0, 2, text)
   LCD.Update()
 EndFunction
-
-' Поднять захват
-Sub grabber_up
-  Motor.Move(grabber_motor, 50, 170, "True")
-EndSub
 
 ' --- Движение по линии ---
 
@@ -160,16 +154,14 @@ Function line_slow(in number l)
 EndFunction
 
 ' Линия по ультразвуку (по стенке)
-Function ultra_line(in number a)
+Function ultra_line(in number a, in number power)
   l = Sensor.ReadRawValue(@ultrasonic, 0)
   err = l - a
-  diff = err - @last_err
-  delta = err * 0.8 + diff * 0
-  left_power = 40 - delta
-  right_power = 40 + delta
+  delta = err * 0.8
+  left_power = power - delta
+  right_power = power + delta
   MotorA.SetPower(left_power * @left_forward)
   MotorB.SetPower(right_power * @right_forward)
-  @last_err = err
 EndFunction
 
 ' Бесконечное движение по линии (для отладки)
@@ -196,7 +188,7 @@ Function speedup(in number base_power, in number min_power, in number deg, in nu
       Time.Reset2()
     EndIf
     'p = l / deg
-    p = Math.Power(l, 0.5) / Math.Power(deg, 0.5)
+    p = Math.SquareRoot(l) / Math.SquareRoot(deg)
     power = (base_power - min_power) * p + min_power
     l = MotorA.GetTacho() * @left_forward * coef
     r = MotorB.GetTacho() * @right_forward * coef
@@ -276,7 +268,7 @@ Function move_motor(in string motor, in number forward, in number deg, in number
   If acceleration = "True" Then
     Motor.ResetCount(motor)
     m = 0
-    min_power = 10
+    min_power = 12
     Time.Reset1()
     While m < acceleration_deg
       ' Защита от застревания
@@ -286,8 +278,7 @@ Function move_motor(in string motor, in number forward, in number deg, in number
         acceleration_deg = acceleration_deg
         Time.Reset1()
       EndIf
-      'p = m / acceleration_deg
-      p = Math.Power(m, 0.5) / Math.Power(deg, 0.5)
+      p = Math.SquareRoot(m) / Math.SquareRoot(acceleration_deg)
       power = (max_power - min_power) * p + min_power
       Motor.Start(motor, power * forward)
       m = Motor.GetCount(motor) * forward
@@ -336,68 +327,28 @@ EndFunction
 
 ' Забрать химикат справа
 Sub take_chem_on_right
-  'speedup(30, 20, 50, -1)
-  'zame(30, 20, 50, -1)
-  'MotorA.OffAndBrake()
-  'move_motor(right_motor, right_forward * -1, 100, 30, "False", "True", "True")
-  'Motor.Move(grabber_motor, 50, 170, "True")
-  'speedup(30, 20, 50, 1)
-  'zame(30, 20, 50, 1)
-  'stop()
-  'Motor.Move(grabber_motor, 50, 110, "True")
-  'speedup(30, 20, 60, -1)
-  'zame(30, 15, 60, -1)
-  'stop()
-  'delay(300)
-  'move_motor(right_motor, right_forward, 85, 30, "True", "True", "True")
-  'stop()
-  'delay(300)
-  'speedup(30, 20, 100, 1)
-  'chem = "True"
   
   speedup(30, 20, 80, -1)
   zame(30, 20, 80, -1)
   stop()
   Motor.Move(@grabber_motor, 50, 170, "True")
-  move_motor(@left_motor, @left_forward, 130, 20, "False", "False", "True")
+  move_motor(@left_motor, @left_forward, 130, 20, "True", "True", "True")
   Motor.Move(@grabber_motor, 50, 110, "True")
   ' 130
-  move_motor(@left_motor, @left_forward * -1, 125, 20, "False", "False", "True")
+  move_motor(@left_motor, @left_forward * -1, 130, 20, "True", "True", "True")
   delay(200)
   speedup(30, 20, 160, 1)
 EndSub
 
 ' Забрать химикат слева
 Function take_chem_on_left(in string finish_forward)
-  'speedup(30, 20, 50, -1)
-  'zame(30, 20, 50, -1)
-  'MotorB.OffAndBrake()
-  'move_motor(@left_motor, @left_forward * -1, 100, 30, "False", "True", "True")
-  'Motor.Move(@grabber_motor, 50, 170, "True")
-  'speedup(30, 20, 50, 1)
-  'zame(30, 20, 50, 1)
-  'stop()
-  'Motor.Move(@grabber_motor, 50, 110, "True")
-  'speedup(30, 20, 60, -1)
-  'zame(30, 15, 60, -1)
-  'stop()
-  'delay(300)
-  'move_motor(@left_motor, @left_forward, 85, 30, "True", "True", "True")
-  'stop()
-  'delay(300)
-  'If finish_forward = "True" Then
-  'speedup(30, 20, 100, 1)
-  'EndIf
-  'chem = "True"
-  
   speedup(30, 20, 80, -1)
   zame(30, 20, 80, -1)
   stop()
   Motor.Move(@grabber_motor, 50, 170, "True")
-  move_motor(@right_motor, @right_forward, 130, 20, "False", "False", "True")
+  move_motor(@right_motor, @right_forward, 130, 20, "True", "True", "True")
   Motor.Move(@grabber_motor, 50, 110, "True")
-  ' 130
-  move_motor(@right_motor, @right_forward * -1, 125, 20, "False", "False", "True")
+  move_motor(@right_motor, @right_forward * -1, 130, 20, "True", "True", "True")
   delay(200)
   If finish_forward = "True" Then
     speedup(30, 20, 160, 1)
@@ -642,10 +593,13 @@ Sub prepare_grabber
   Motor.Move(grabber_motor, 50, 50, "True")
 EndSub
 
+Sub grabber_1
+  Motor.Move(grabber_motor, 50, 170, "True")
+EndSub
+
 Sub main
   start = "left"
   Time.Reset9()
-  a = 90
   Thread.Run = prepare_grabber
   If start = "left" Then
     MotorA.StartPower(80 * left_forward)
@@ -666,15 +620,16 @@ Sub main
     movement_init(-50)
     delay(1000)
     stop()
-    speedup(30, 20, 55, 1)
+    speedup(30, 20, 57, 1)
     MotorA.OffAndBrake()
     move_motor(right_motor, right_forward, 360, 30, "False", "True", "True")
     movement_init(40)
     read_percent(p)
     While p > 23
       read_percent(p)
-      ultra_line(a)
+      ultra_line(90, 40)
     EndWhile
+    beep()
   Else
     MotorA.StartPower(80 * left_forward)
     MotorB.StartPower(40 * right_forward)
@@ -710,11 +665,11 @@ Sub main
     read_percent(p)
     While p > 23
       read_percent(p)
-      ultra_line(90)
+      ultra_line(90, 40)
     EndWhile
   EndIf
   
-  zame(40, 0, 30, 1)
+  zame(40, 0, 35, 1)
   stop()
   
   ' Коричневая зона, первый элемент
@@ -744,25 +699,27 @@ Sub main
     is_second_brown_chem = "True"
     take_chem_on_right()
   EndIf
-  deg = 520
+  deg = 525
   If object <> "chem" Then
     speedup(40, 15, 120, 1)
     deg = deg - 120
   EndIf
   reset()
+  
+  a = 90
   If brown = "False" Then
-    While MotorA.GetTacho() * left_forward < deg - 130
-      ultra_line(93)
+    While MotorA.GetTacho() * left_forward < deg - 150
+      ultra_line(a, 40)
     EndWhile
-    zame(40, 15, 120, 1)
+    zame(40, 15, 140, 1)
     stop()
     
     ' Коричневая зона, второй элемент
     object = "none"
     read_mode(right_sensor, 1, 200, r)
-    If r > 80 Then
+    If r > 60 Then
       read_mode(right_sensor, 2, 0, g)
-      If g > 100 Then
+      If g > 80 Then
         ' Человек
         brown = "True"
         brown_man = "True"
@@ -790,19 +747,18 @@ Sub main
     movement_init(40)
   Else
     While MotorA.GetTacho() * left_forward < deg
-      ultra_line(90)
+      ultra_line(a, 40)
     EndWhile
   EndIf
   reset()
   a = 93
   If is_second_brown_chem = "True" Then
-    a = 90
+    a = 95
   EndIf
-  While MotorA.GetTacho() * left_forward < 520
-    ultra_line(a)
+  While MotorA.GetTacho() * left_forward < 520 - 80
+    ultra_line(a, 40)
   EndWhile
-  MotorA.SetPower(40 * left_forward)
-  MotorB.SetPower(40 * right_forward)
+  zame(40, 25, 80, 1)
   delay(1000)
   stop()
   
@@ -918,19 +874,19 @@ Sub main
     Program.Delay(1000)
     stop()
   EndIf
-  speedup(20, 15, 53, -1)
-  zame(20, 15, 53, -1)
+  speedup(30, 20, 53, -1)
+  zame(30, 20, 53, -1)
   stop()
-  move_motor(right_motor, right_forward * -1, 355, 20, "False", "False", "True")
+  move_motor(right_motor, right_forward * -1, 365, 40, "True", "True", "True")
   movement_init(-40)
   delay(1000)
   stop()
   If is_fire = "True" Then
-    kick_water()
+    Thread.Run = kick_water
   EndIf
   speedup(30, 20, 120, 1)
-  forward_deg(420 - 240, 30)
-  zame(30, 15, 120, 1)
+  forward_deg(415 - 240, 30)
+  zame(30, 20, 120, 1)
   stop()
   
   ' Жёлтая зона, первый элемент
@@ -949,7 +905,7 @@ Sub main
       yellow = "True"
       object = "fire"
       fire_count = fire_count + 1
-      kick_water()
+      Thread.Run = kick_water
     EndIf
   ElseIf chem = "False" Then
     move_motor(left_motor, left_forward * -1, 20, 20, "False", "False", "True")
@@ -964,21 +920,20 @@ Sub main
     EndIf
   EndIf
   
-  move_motor(right_motor, right_forward, 245, 20, "True", "True", "True")
+  move_motor(right_motor, right_forward, 250, 20, "True", "True", "True")
   delay(200)
   move_motor(left_motor, left_forward, 250, 20, "True", "True", "True")
   stop()
-  'delay(500)
+  delay(500)
   
   If yellow = "False" Or take_chem_in_yellow = "True" Then
     speedup(30, 20, 85, 1)
-    zame(30, 20, 90, 1)
+    zame(30, 20, 80, 1)
     stop()
     
     If yellow = "False" Then
       ' Жёлтая зона, второй элемент
       object = "none"
-      is_second_yellow_chem = "True"
       read_mode(left_sensor, 1, 200, r)
       If r > 50 Then
         read_mode(left_sensor, 2, 0, g)
@@ -997,7 +952,7 @@ Sub main
           zame(30, 20, 50, -1)
           stop()
           kick_water()
-          speedup(30, 20, 100, 1)
+          speedup(60, 20, 200, 1)
         EndIf
       ElseIf chem = "False" Then
         delay(300)
@@ -1011,29 +966,29 @@ Sub main
         EndIf
       EndIf
       If object = "man" Or object = "none" Then
-        speedup(30, 20, 100, 1)
-      ElseIf object = "fire" Or object = "chem" Then
-        speedup(30, 30, 100, 1)
+        speedup(60, 15, 100, 1)
+      ElseIf object = "chem" Then
+        speedup(60, 30, 100, 1)
       EndIf
     Else
-      Thread.Run = grabber_up
+      Thread.Run = grabber_1
       move_motor(right_motor, right_forward * -1, 250, 30, "True", "True", "True")
       move_motor(left_motor, left_forward, 350, 30, "True", "True", "True")
       Motor.Move(grabber_motor, 50, 110, "True")
       move_motor(left_motor, left_forward * -1, 350, 30, "True", "True", "True")
       move_motor(right_motor, right_forward, 240, 20, "True", "True", "True")
+      speedup(60, 15, 100, 1)
     EndIf
   Else
-    speedup(30, 15, 120, 1)
-    forward_deg(275 - 120, 30)
+    speedup(60, 15, 265, 1)
   EndIf
   reset()
+  'a = Sensor.ReadRawValue(ultrasonic, 0)
   a = 105
-  While MotorA.GetTacho() * left_forward < 300
-    ultra_line(a)
+  While MotorA.GetTacho() * left_forward < 300 - 80
+    ultra_line(a, 60)
   EndWhile
-  MotorA.SetPower(40 * left_forward)
-  MotorB.SetPower(40 * right_forward)
+  zame(60, 20, 80, 1)
   delay(1000)
   stop()
   
@@ -1053,7 +1008,7 @@ Sub main
       green = "True"
       object = "fire"
       fire_count = fire_count + 1
-      kick_water()
+      Thread.Run = kick_water
     EndIf
   ElseIf chem = "False" Then
     delay(300)
@@ -1097,54 +1052,65 @@ Sub main
   movement_init(-50)
   delay(1200)
   stop()
-  speedup(30, 20, 120, 1)
-  reset()
-  u = Sensor.ReadRawValue(ultrasonic, 0)
-  While MotorA.GetTacho() * left_forward < 425 - 120 - 120
-    ultra_line(95)
-  EndWhile
-  zame(30, 15, 120, 1)
-  stop()
   
-  ' Зелёная зона, второй элемент
-  object = "none"
-  read_mode(left_sensor, 1, 200, r)
-  If r > 50 Then
-    read_mode(left_sensor, 2, 0, g)
-    If g > 80 Then
-      ' Человек
-      green = "True"
-      green_man = "True"
-      object = "man"
-      men_count = men_count + 1
+  speedup(50, 20, 120, 1)
+  reset()
+  
+  deg = 425 - 120
+  deg2 = 150
+  deg2_half = Math.Round(deg2 / 2)
+  
+  If green = "False" Then
+    u = Sensor.ReadRawValue(ultrasonic, 0)
+    While MotorA.GetTacho() * left_forward < deg - 120
+      ultra_line(95, 50)
+    EndWhile
+    zame(50, 15, 120, 1)
+    stop()
+    
+    ' Зелёная зона, второй элемент
+    object = "none"
+    read_mode(left_sensor, 1, 200, r)
+    If r > 50 Then
+      read_mode(left_sensor, 2, 0, g)
+      If g > 80 Then
+        ' Человек
+        green = "True"
+        green_man = "True"
+        object = "man"
+        men_count = men_count + 1
+      Else
+        ' Огонь
+        green = "True"
+        object = "fire"
+        fire_count = fire_count + 1
+        speedup(30, 20, 50, -1)
+        zame(30, 20, 50, -1)
+        stop()
+        kick_water()
+        speedup(30, 20, 100, 1)
+      EndIf
+    ElseIf chem = "False" Then
+      delay(300)
+      ultra = Sensor.ReadRawValue(ultrasonic, 0)
+      If ultra < 90 Then
+        ' Химикат
+        green = "True"
+        object = "chem"
+        chem = "True"
+        take_chem_on_left("True")
+      EndIf
+    EndIf
+    If object = "none" Or object = "man" Then
+      speedup(30, 20, deg2_half, 1)
+      zame(30, 20, deg2_half, 1)
     Else
-      ' Огонь
-      green = "True"
-      object = "fire"
-      fire_count = fire_count + 1
-      speedup(30, 20, 50, -1)
-      zame(30, 20, 50, -1)
-      stop()
-      kick_water()
-      speedup(30, 20, 100, 1)
+      forward_deg(deg2_half, 30)
+      zame(30, 20, deg2_half, 1)
     EndIf
-  ElseIf chem = "False" Then
-    delay(300)
-    ultra = Sensor.ReadRawValue(ultrasonic, 0)
-    If ultra < 90 Then
-      ' Химикат
-      green = "True"
-      object = "chem"
-      chem = "True"
-      take_chem_on_left("True")
-    EndIf
-  EndIf
-  If object = "none" Or object = "man" Then
-    speedup(30, 20, 80, 1)
-    zame(30, 20, 70, 1)
   Else
-    forward_deg(80, 30)
-    zame(30, 20, 70, 1)
+    speedup(50, 50, deg + deg2 - 120, 1)
+    zame(50, 15, 120, 1)
   EndIf
   stop()
   
@@ -1204,7 +1170,7 @@ Sub main
     speedup(40, 20, 100, 1)
     reset()
     While MotorA.GetTacho() * left_forward < 520 - 200
-      ultra_line(95)
+      ultra_line(95, 40)
     EndWhile
     zame(40, 20, 100, 1)
     stop()
@@ -1262,7 +1228,7 @@ Sub main
     white_man = "True"
     men_count = men_count + 1
   EndIf
-  If white_object = "chem" Or white_object = "fire" Then
+  If (white_object = "chem" Or white_object = "fire") Or take_chem_in_yellow = "True" Then
     If is_on_second_blue = "True" Then
       If is_second_blue_object_chem = "False" Then
         speedup(30, 30, 50, -1)
@@ -1302,11 +1268,54 @@ Sub main
     While Sensor.ReadRawValue(line, 0) <> 4
       sync(30)
     EndWhile
-    If white_object = "fire" Then
+    If white_object = "fire" And take_chem_in_yellow = "True" Then
       zame(30, 20, 100, 1)
       stop()
       kick_water()
       kick_water()
+      speedup(30, 20, 30, 1)
+      zame(30, 20, 30, 1)
+      stop()
+    ElseIf white_object = "fire" Then
+      zame(30, 20, 100, 1)
+      stop()
+      kick_water()
+      kick_water()
+    ElseIf take_chem_in_yellow = "True" Then
+      zame(30, 20, 170, 1)
+      stop()
+    EndIf
+    If take_chem_in_yellow = "True" Then
+      Sensor.SetMode(line, 2)
+      move_motor(left_motor, left_forward, 360, 30, "True", "True", "True")
+      reset()
+      forward_deg(450 - 100, 30)
+      zame(30, 20, 100, 1)
+      stop()
+      delay(200)
+      move_motor(left_motor, left_forward * -1, 360, 30, "True", "True", "True")
+      Motor.Move(grabber_motor, 50, 170, "True")
+      speedup(30, 20, 65, 1)
+      zame(30, 20, 65, 1)
+      stop()
+      Motor.Move(grabber_motor, 50, 110, "True")
+      speedup(30, 20, 40, -1)
+      zame(30, 20, 40, -1)
+      stop()
+      delay(200)
+      Motor.MoveSync(motors, left_forward * -1 * 20, right_forward * 20, 185, "True")
+      delay(200)
+      speedup(30, 20, 100, 1)
+      forward_deg(100, 30)
+      zame(30, 20, 100, 1)
+      stop()
+      move_motor(left_motor, left_forward, 200, 30, "True", "True", "True")
+      delay(200)
+      move_motor(right_motor, right_forward, 210, 30, "True", "True", "True")
+      delay(200)
+      speedup(30, 20, 100, 1)
+      forward_deg(100, 30)
+      stop()
     EndIf
     If white_object = "chem" Then
       ' Доезд до первой позиции
@@ -1389,7 +1398,7 @@ Sub main
     forward_deg(200, 30)
     reset()
     While MotorA.GetTacho() * left_forward < 600
-      ultra_line(480)
+      ultra_line(480, 40)
     EndWhile
   Else
     If is_on_second_blue = "False" Then
@@ -1401,7 +1410,7 @@ Sub main
         deg = deg - 290
       EndIf
       While MotorA.GetTacho() * left_forward < deg - 200
-        ultra_line(a)
+        ultra_line(a, 40)
       EndWhile
       zame(40, 20, 100, 1)
       delay(200)
@@ -1412,12 +1421,12 @@ Sub main
     Sensor.SetMode(line, 0)
     a = Sensor.ReadRawValue(ultrasonic, 0)
     While MotorA.GetTacho() * left_forward < 330
-      ultra_line(a)
+      ultra_line(a, 40)
     EndWhile
     read_percent(p)
     While p > 20
       read_percent(p)
-      ultra_line(a)
+      ultra_line(a, 40)
     EndWhile
     stop()
     move_motor(left_motor, left_forward, 200, 30, "True", "False", "Fales")
@@ -1468,3 +1477,7 @@ Sub main
 EndSub
 
 main()
+'movement_init(30)
+'While "True"
+  'sync(30)
+'EndWhile

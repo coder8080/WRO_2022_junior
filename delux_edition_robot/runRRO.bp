@@ -417,9 +417,26 @@ Function open_cubes(in number coef)
   Motor.Stop(@water_motor, "True")
 EndFunction
 
+Sub open_cubes_1
+  open_cubes(1)
+EndSub
+
+Sub open_cubes__1
+  open_cubes(-1)
+EndSub
+
+Function open_cubes_async(in number coef)
+  If coef = 1 Then
+    Thread.Run = open_cubes_1
+  Else
+    Thread.Run = open_cubes__1
+  EndIf
+EndFunction
+
 ' Закрыть заслонку
 Function close_cubes(in number coef)
   Motor.Move(@water_motor, -30 * coef, 90, "True")
+  Motor.Stop(@water_motor, "True")
 EndFunction
 
 ' Отвезти куб в дальнюю зону
@@ -435,6 +452,7 @@ Function deliver_long(in string is_inverted)
   EndIf
   If @cubes_count = 2 Then
     open_cubes(coef)
+    beep()
     move_motor(mot, forward, 270, 30, "True", "True", "True")
     delay(200)
     move_motor(mot, forward * -1, 120, 20, "True", "True", "True")
@@ -442,13 +460,15 @@ Function deliver_long(in string is_inverted)
     move_motor(mot, forward * -1, 265 - 120, 20, "True", "True", "True")
     @cubes_count = 1
   Else
+    Motor.Start(@water_motor, 50 * coef)
     speedup(20, 20, 30, 1)
     stop()
     move_motor(mot, forward, 360, 30, "True", "True", "True")
     movement_init(30)
     delay(300)
+    Motor.Stop(@water_motor, "True")
     stop()
-    open_cubes(coef)
+    'open_cubes(coef)
     speedup(30, 20, 45, -1)
     zame(30, 20, 45, -1)
     stop()
@@ -553,54 +573,73 @@ Function take_cubes(in string is_inverted)
   get_motors(is_inverted, motor1, motor2, forward1, forward2, coef)
   open_cubes(coef)
   speedup(30, 20, 80, -1)
-  zame(30, 20, 75, -1)
+  zame(30, 20, 70, -1)
   stop()
   move_motor(motor2, forward2 * -1, 180, 30, "True", "False", "True")
   move_motor(motor1, forward1, 40, 30, "False", "False", "True")
   Motor.Start(motor2, forward2 * -30)
   delay(700)
   stop()
-  Motor.Start(motor1, forward1 * -40)
+  Motor.Start(motor1, forward1 * -30)
   delay(700)
   stop()
+  delay(200)
   reset()
-  speedup(50, 20, 120, 1)
-  forward_deg(1000 - 240, 50)
-  zame(50, 30, 100, 1)
+  speedup(40, 20, 120, 1)
+  forward_deg(760, 40)
+  reset()
+  If coef = 1 Then
+    Thread.Run = close_cubes_1
+  Else
+    Thread.Run = close_cubes__1
+  EndIf
+  While Motor.IsBusy(@water_motor)
+    sync(50)
+  EndWhile
+  deg = MotorA.GetTacho() * @left_forward
+  zame(40, 30, 120, 1)
   stop()
-  close_cubes(coef)
-  move_motor(motor2, forward2 * -1, 250, 30, "True", "True", "True")
-  move_motor(motor1, forward1 * -1, 250, 30, "True", "True", "True")
+  delay(200)
+  If is_inverted = "False" Then
+    move_motor(motor2, forward2 * -1, 250, 30, "True", "True", "True")
+    move_motor(motor1, forward1 * -1, 250, 30, "True", "True", "True")
+  Else
+    move_motor(motor2, forward2 * -1, 270, 30, "True", "True", "True")
+    move_motor(motor1, forward1 * -1, 270, 30, "True", "True", "True")
+  EndIf
   reset()
   movement_init(-30)
+  While MotorA.GetTacho() * @left_forward * -1 < deg
+  EndWhile
   If is_inverted = "False" Then
     read_percent(p)
     While Math.Abs(MotorA.GetTacho()) < 20 Or p > 20
       read_percent(p)
     EndWhile
   Else
+    reset()
     Sensor.SetMode(@line, 4)
     Sensor.Wait(@line)
     rgb = Sensor.ReadRaw(@line, 3)
-    While rgb[1] > 50
+    While MotorA.GetTacho() * @left_forward * -1 < 25 Or rgb[1] > 50
       rgb = Sensor.ReadRaw(@line, 3)
     EndWhile
     Sensor.SetMode(@line, 0)
   EndIf
-  stop()
+  'stop()
 EndFunction
 
 ' Финишировать после развозов
 Function finish_after_deliveries(in string is_inverted)
   get_motors(is_inverted, motor1, motor2, forward1, forward2, coef)
   
-  movement_init(-40)
-  delay(1500)
+  movement_init(-50)
+  delay(1000)
   stop()
-  move_motor(motor1, forward1, 210, 30, "True", "True", "True")
-  move_motor(motor2, forward2 * -1, 150, 30, "True", "True", "True")
+  move_motor(motor1, forward1, 210, 50, "True", "True", "True")
+  move_motor(motor2, forward2 * -1, 150, 50, "True", "True", "True")
   movement_init(-40)
-  delay(1500)
+  delay(1000)
   stop()
 EndFunction
 
@@ -640,6 +679,14 @@ Sub prepare_grabber
   Delay(1000)
   Motor.Stop(grabber_motor, "True")
   Motor.Move(grabber_motor, 50, 50, "True")
+EndSub
+
+Sub close_cubes_1
+  close_cubes(1)
+EndSub
+
+Sub close_cubes__1
+  close_cubes(-1)
 EndSub
 
 Sub main
@@ -751,7 +798,7 @@ Sub main
   EndIf
   reset()
   If brown = "False" Then
-    While MotorA.GetTacho() * left_forward < deg - 130
+    While MotorA.GetTacho() * left_forward < deg - 120
       ultra_line(93)
     EndWhile
     zame(40, 15, 120, 1)
@@ -760,7 +807,7 @@ Sub main
     ' Коричневая зона, второй элемент
     object = "none"
     read_mode(right_sensor, 1, 200, r)
-    If r > 80 Then
+    If r > 60 Then
       read_mode(right_sensor, 2, 0, g)
       If g > 100 Then
         ' Человек
@@ -796,7 +843,7 @@ Sub main
   reset()
   a = 93
   If is_second_brown_chem = "True" Then
-    a = 90
+    a = 95
   EndIf
   While MotorA.GetTacho() * left_forward < 520
     ultra_line(a)
@@ -1017,11 +1064,14 @@ Sub main
       EndIf
     Else
       Thread.Run = grabber_up
-      move_motor(right_motor, right_forward * -1, 250, 30, "True", "True", "True")
-      move_motor(left_motor, left_forward, 350, 30, "True", "True", "True")
+      move_motor(right_motor, right_forward * -1, 250, 20, "False", "False", "True")
+      delay(200)
+      move_motor(left_motor, left_forward, 350, 20, "False", "False", "True")
       Motor.Move(grabber_motor, 50, 110, "True")
-      move_motor(left_motor, left_forward * -1, 350, 30, "True", "True", "True")
-      move_motor(right_motor, right_forward, 240, 20, "True", "True", "True")
+      move_motor(left_motor, left_forward * -1, 350, 20, "False", "False", "True")
+      delay(200)
+      move_motor(right_motor, right_forward, 250, 20, "False", "False", "True")
+      speedup(30, 20, 100, 1)
     EndIf
   Else
     speedup(30, 15, 120, 1)
@@ -1029,6 +1079,9 @@ Sub main
   EndIf
   reset()
   a = 105
+  If take_chem_in_yellow = "True" Then
+    a = 115
+    EndIf
   While MotorA.GetTacho() * left_forward < 300
     ultra_line(a)
   EndWhile
@@ -1099,9 +1152,10 @@ Sub main
   stop()
   speedup(30, 20, 120, 1)
   reset()
+  ' 95
   u = Sensor.ReadRawValue(ultrasonic, 0)
   While MotorA.GetTacho() * left_forward < 425 - 120 - 120
-    ultra_line(95)
+    ultra_line(u)
   EndWhile
   zame(30, 15, 120, 1)
   stop()
@@ -1140,10 +1194,10 @@ Sub main
     EndIf
   EndIf
   If object = "none" Or object = "man" Then
-    speedup(30, 20, 80, 1)
+    speedup(30, 20, 70, 1)
     zame(30, 20, 70, 1)
   Else
-    forward_deg(80, 30)
+    forward_deg(70, 30)
     zame(30, 20, 70, 1)
   EndIf
   stop()
@@ -1191,8 +1245,8 @@ Sub main
       stop()
       Motor.Move(grabber_motor, 50, 110, "True")
       delay(200)
-      speedup(30, 20, 40, -1)
-      zame(30, 20, 40, -1)
+      speedup(30, 35, 40, -1)
+      zame(30, 35, 40, -1)
       stop()
       delay(200)
       move_motor(left_motor, left_forward, 360, 20, "False", "False", "True")
@@ -1204,13 +1258,14 @@ Sub main
     speedup(40, 20, 100, 1)
     reset()
     While MotorA.GetTacho() * left_forward < 520 - 200
-      ultra_line(95)
+      ultra_line(u)
     EndWhile
     zame(40, 20, 100, 1)
     stop()
     
     ' Синяя зона, второй элемент
     read_mode(left_sensor, 1, 200, r)
+    text_to_screen(Text.Append(r, ""))
     If r > 50 Then
       read_mode(left_sensor, 2, 0, g)
       If g > 80 Then
@@ -1426,7 +1481,7 @@ Sub main
     While p < 20
       read_percent(p)
     EndWhile
-    Motor.Move(left_motor, left_forward * 20, 150, "True")
+    Motor.Move(left_motor, left_forward * 20, 190, "True")
     stop()
     reset()
     movement_init(30)
@@ -1447,18 +1502,20 @@ Sub main
   Motor.Move(grabber_motor, -50, 120, "True")
   If start = "left" Then
     from_protected_to_finish("False")
-    take_cubes("False")
-    deliver_group(brown_man, red_man, "True", "False")
-    deliver_group(white_man, yellow_man, "True", "False")
-    deliver_group(blue_man, green_man, "False", "False")
-    finish_after_deliveries("False")
+    deliveries("False")
+    'take_cubes("False")
+    'deliver_group(brown_man, red_man, "True", "False")
+    'deliver_group(white_man, yellow_man, "True", "False")
+    'deliver_group(blue_man, green_man, "False", "False")
+    'finish_after_deliveries("False")
   Else
     from_protected_to_finish("True")
-    take_cubes("True")
-    deliver_group(blue_man, green_man, "True", "True")
-    deliver_group(white_man, yellow_man, "True", "True")
-    deliver_group(brown_man, red_man, "False", "True")
-    finish_after_deliveries("True")
+    deliveries("True")
+    'take_cubes("True")
+    'deliver_group(blue_man, green_man, "True", "True")
+    'deliver_group(white_man, yellow_man, "True", "True")
+    'deliver_group(brown_man, red_man, "False", "True")
+    'finish_after_deliveries("True")
   EndIf
   
   speedup(20, 20, 20, 1)
@@ -1466,5 +1523,105 @@ Sub main
   beep()
   show_time("True")
 EndSub
+
+Function deliveries(in string is_inverted)
+  _1 = "False"
+  _2 = "False"
+  _3 = "False"
+  is_stopped = "False"
+  cache_deg = 0
+  current_position = 0
+  If is_inverted = "False" Then
+    If @red_man = "True" Or @brown_man = "True" Then
+      _1 = "True"
+    EndIf
+    If @yellow_man = "True" Or @white_man = "True" Then
+      _2 = "True"
+    EndIf
+    If @green_man = "True" Or @blue_man = "True" Then
+      _3 = "True"
+    EndIf
+  Else
+    If @red_man = "True" Or @brown_man = "True" Then
+      _3 = "True"
+    EndIf
+    If @yellow_man = "True" Or @white_man = "True" Then
+      _2 = "True"
+    EndIf
+    If @green_man = "True" Or @blue_man = "True" Then
+      _1 = "True"
+    EndIf
+  EndIf
+  take_cubes(is_inverted)
+  If _1 = "True" Then
+    stop()
+    is_stopped = "True"
+    is_near = "False"
+    is_long = "False"
+    If (is_inverted = "False" And @brown_man = "True") Or (is_inverted = "True" And @blue_man = "True") Then
+      is_long = "True"
+    EndIf
+    If (is_inverted = "False" And @red_man = "True") Or (is_inverted = "True" And @green_man = "True") Then
+      is_near = "True"
+    EndIf
+    If is_long = "True" Then
+      deliver_long(is_inverted)
+    EndIf
+    If is_near = "True" Then
+      deliver_near(is_inverted, cache_deg)
+    EndIf
+  EndIf
+  current_position += cache_deg
+  cache_deg = 0
+  If _2 = "True" Then
+    deg = 205 - current_position
+    If is_stopped = "False" Then
+      speedup(40, 30, Math.Floor(deg / 2), -1)
+    Else
+      speedup(40, 15, Math.Floor(deg / 2), -1)
+    EndIf
+    zame(40, 15, Math.Floor(deg / 2), -1)
+    is_stopped = "True"
+    current_position += deg
+    stop()
+    If @white_man = "True" Then
+      deliver_long(is_inverted)
+    EndIf
+    If @yellow_man = "True" Then
+      deliver_near(is_inverted, cache_deg)
+    EndIf
+  EndIf
+  current_position += cache_deg
+  If _3 = "True" Then
+    deg = 410 - current_position
+    If is_stopped = "False" Then
+      speedup(40, 30, Math.Floor(deg / 2), -1)
+    Else
+      speedup(40, 15, Math.Floor(deg / 2), -1)
+    EndIf
+    zame(40, 15, Math.Floor(deg / 2), -1)
+    stop()
+    If (is_inverted = "False" And @blue_man = "True") Or (is_inverted = "True" And @brown_man = "True") Then
+      is_long = "True"
+    EndIf
+    If (is_inverted = "False" And @green_man = "True") Or (is_inverted = "True" And @red_man = "True") Then
+      is_near = "True"
+    EndIf
+    current_position += deg
+    If is_long = "True" Then
+      deliver_long(is_inverted)
+    EndIf
+    If is_near = "True" Then
+      deliver_near(is_inverted, cache_deg)
+    EndIf
+  EndIf
+  current_position += cache_deg
+  deg = 410 - current_position
+  If deg > 0 Then
+    speedup(15, 50, Math.Floor(deg / 2), -1)
+  EndIf
+  
+  finish_after_deliveries(is_inverted)
+EndFunction
 
 main()
